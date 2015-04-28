@@ -12,13 +12,15 @@ public class Query {
   private String queryString;
   private List<Job> jobs;
   private HashMap<String,String> workflowAdjacencies;
-  private HashMap<String,String> queryConf;
+
+  private boolean done = false;
+
+  //operator tree
 
   public Query(String queryString ,String workflowID , String workflowAdjacencies) {
     this.jobs = new ArrayList<Job>();
     this.queryString = queryString;
     this.workflowID = workflowID;
-    this.queryConf = new HashMap<String, String>();
     this.workflowAdjacencies = new HashMap<String, String>();
     parse( workflowAdjacencies );
   }
@@ -45,5 +47,18 @@ public class Query {
 
   public String getQueryString() {
     return queryString;
+  }
+
+  /**
+   * this is a flag . when all job logs and task logs of query has
+   * finished analyze,the flag is true , or false
+   * @return
+   */
+  public boolean isDone() {
+    return done;
+  }
+
+  public String getWorkflowID() {
+    return workflowID;
   }
 }

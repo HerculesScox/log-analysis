@@ -18,8 +18,8 @@ import java.util.HashSet;
  */
 public class LogInput {
   Log LOG = LogFactory.getLog(LogInput.class);
-  private static final String JHIST_File = "jhist";
-  private static final String XML_FILE = "xml";
+  private static final String JHIST_File = ".jhist";
+  private static final String XML_FILE = ".xml";
   private LAConf conf;
 
   public LogInput( LAConf conf ) {

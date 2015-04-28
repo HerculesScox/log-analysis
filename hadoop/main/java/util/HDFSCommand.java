@@ -29,9 +29,13 @@ public class HDFSCommand {
 
     while(listFiles.hasNext()){
       LocatedFileStatus status = listFiles.next();
-      if(!status.isDirectory() &&
-              status.getPath().toString().endsWith(regex)){
-        paths.add(status.getPath());
+      if(!status.isDirectory()){
+        if(regex != null && status.getPath().toString().endsWith(regex)) {
+          paths.add(status.getPath());
+        }
+        if(regex == null){
+          paths.add(status.getPath());
+        }
       }
     }
     return paths;

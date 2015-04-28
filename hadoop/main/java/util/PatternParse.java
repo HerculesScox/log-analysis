@@ -9,11 +9,11 @@ import java.util.regex.Pattern;
 /**
  * Created by zhangyun on 4/24/15.
  */
-public class PathParse {
-  private static Log LOG = LogFactory.getLog(PathParse.class);
+public class PatternParse {
+  private static Log LOG = LogFactory.getLog(PatternParse.class);
   private static Pattern jobPattern = Pattern.compile("job_\\d+_\\d+");
   private static Pattern appPattern = Pattern.compile("application_\\d+_\\d+");
-  private static Pattern jobID = Pattern.compile("application_\\d+_\\d+");
+  private static Pattern jobID = Pattern.compile("_\\d+_\\d+");
 
   public static String jobAndID( String path ){
     Matcher match = jobPattern.matcher(path);

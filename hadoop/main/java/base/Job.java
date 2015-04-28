@@ -16,15 +16,17 @@ public class Job {
   private Path JHPath;
   private Path confFile;
   // JobId map to all path of corresponding task log files
-  private HashMap<String, Path> tasks;
+  private HashSet<Path> taskLogPath;
+  private HashSet<Task> tasks;
   private String generateDate;
 
   public Job(JhistFileParser.JobInfoQ jobInfo , Path JHPath , Path confFile) {
     this.jobInfo = jobInfo;
     this.JHPath = JHPath;
     this.confFile = confFile;
-    this.tasks = new HashMap<String, Path>();
-    generateDate = Calendar.getInstance().getTime().toString();
+    this.taskLogPath = new HashSet<Path>();
+    this.tasks = new HashSet<Task>();
+    this.generateDate = Calendar.getInstance().getTime().toString();
   }
 
   public Path getConfFile() {
