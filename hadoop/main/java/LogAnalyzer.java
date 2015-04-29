@@ -40,13 +40,17 @@ public class LogAnalyzer extends Observable{
     pad.ParseJsonFile();
     Collection<Query> queries = pad.getQueries().values();
     for(Query q : queries){
-      System.out.println(">>QUERY "+ q.getWorkflowID());
+      System.out.println(">>QUERY "+ q.getQueryString());
+      System.out.println("\t job dependency : " );
+      for(String k :  q.getWorkflowAdjacencies().keySet()){
+        System.out.println("\t\t "+k +" => "+q.getWorkflowAdjacencies().get(k));
+      }
       for(Job job : q.getJobs()){
         String jobID = job.getJobInfo().getJobid().toString();
         System.out.println("\tJOBID "+ jobID);
         for(Path p : jobIDToTaskPath.get(jobID)){
-          taskParser.parse(p);
-          break;
+         // taskParser.parse(job, p);
+          System.out.println("\tTask path : "+ p.toString());
         }
       }
     }

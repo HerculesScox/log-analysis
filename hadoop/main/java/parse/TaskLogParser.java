@@ -1,6 +1,7 @@
 package parse;
 
 import conf.LAConf;
+import base.Job;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -47,7 +48,7 @@ public class TaskLogParser {
     return idToPaths;
   }
 
-  public void parse(Path taskLog) throws  IOException{
+  public void parse(Job job ,Path taskLog) throws  IOException{
     FileSystem fs = taskLog.getFileSystem(conf);
     FSDataInputStream in = fs.open(taskLog);
     BufferedReader br = new BufferedReader(new InputStreamReader(in));

@@ -49,5 +49,11 @@ public class Job {
     return jobInfo.getWorkflowNodeName();
   }
 
+  public void setTaskLogPath(HashSet<Path> taskLogPath) {
+    this.taskLogPath = taskLogPath;
+  }
 
+  public void setTasks(HashSet<Task> tasks) {
+    this.tasks = tasks;
+  }
 }
