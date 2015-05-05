@@ -4,7 +4,12 @@ import conf.LAConf;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.Counters;
+import org.apache.hadoop.mapreduce.Counter;
+import org.apache.hadoop.mapreduce.CounterGroup;
+import org.apache.hadoop.mapreduce.TaskID;
 import parse.JHParser;
+import parse.JhistFileParser;
 import parse.TaskLogParser;
 
 import java.io.IOException;
@@ -40,24 +45,28 @@ public class LogAnalyzer extends Observable{
     pad.ParseJsonFile();
     Collection<Query> queries = pad.getQueries().values();
     for(Query q : queries){
+      System.out.println("================================================");
       System.out.println(">>QUERY "+ q.getQueryString());
       System.out.println("\t job dependency : " );
-      for(String k :  q.getWorkflowAdjacencies().keySet()){
-        System.out.println("\t\t "+k +" => "+q.getWorkflowAdjacencies().get(k));
-      }
       for(Job job : q.getJobs()){
         String jobID = job.getJobInfo().getJobid().toString();
-        System.out.println("\tJOBID "+ jobID);
+
+        for(Map.Entry<TaskID, JhistFileParser.TaskInfo> map : job.getJobInfo().getTasksMap().entrySet()){
+          System.out.println("----------------- ");
+          System.out.println(map.getKey().toString() + " => ");
+          map.getValue().printAll();
+        }
+
         for(Path p : jobIDToTaskPath.get(jobID)){
          // taskParser.parse(job, p);
           System.out.println("\tTask path : "+ p.toString());
         }
       }
+      System.out.println("================================================");
+      break;
     }
 
   }
-
-
 
   public void gatherSucc(){
     setChanged();

@@ -14,7 +14,8 @@ public class PatternParse {
   private static Log LOG = LogFactory.getLog(PatternParse.class);
   private static Pattern jobPattern = Pattern.compile("job_\\d+_\\d+");
   private static Pattern jobID = Pattern.compile("_\\d+_\\d+");
-
+  private static Pattern taskID = Pattern.compile("org\\.apache\\.hadoop\\." +
+          "mapred\\.Task: 'attempt_(\\d+_\\d+_[m|r]_\\d+)_\\d+' Task done\\.$");
   /**Map task log information */
   private static Pattern mapTaskInput = Pattern.compile("org\\.apache\\.hadoop" +
           "\\.mapred\\.MapTask:\\s+Processing\\s+split:\\s+Paths.*$");
@@ -22,134 +23,83 @@ public class PatternParse {
           Pattern.compile("Paths:(/\\w)+:\\d+\\+\\d+,(/\\w)+:\\d+\\+\\d+");
   private static Pattern inputFormat =
           Pattern.compile("InputFormatClass:.*$");
-  private static Pattern numReduceTasks =
-          Pattern.compile("org\\.apache\\.hadoop" +
-                  "\\.mapred\\.MapTask:\\s+numReduceTasks:.*$");
-  private static Pattern kvi =
-          Pattern.compile("org\\.apache\\.hadoop" +
-                  "\\.mapred\\.MapTask:\\s+\\(EQUATOR\\).*$");
-  private static Pattern taskSortMB =
-          Pattern.compile("org\\.apache\\.hadoop" +
-                  "\\.mapred\\.MapTask:\\s+mapreduce\\.task\\.io\\.sort\\.mb:.*$");
-  private static Pattern taskSoftLimit =
-          Pattern.compile("org\\.apache\\.hadoop" +
-                  "\\.mapred\\.MapTask:\\s+soft\\s+limit\\s+at\\s+\\d+$");
-  private static Pattern mapTaskBuf =
-          Pattern.compile("org\\.apache\\.hadoop" +
-                  "\\.mapred\\.MapTask:\\s+bufstart\\s+=\\s+\\d+;\\s+bufvoid.*$");
-  private static Pattern mapTaskKv =
-          Pattern.compile("org\\.apache\\.hadoop" +
-                  "\\.mapred\\.MapTask:\\s+kvstart\\s+=\\s+\\d+;\\s+length.*$");
-  private static Pattern mapTaskOutputCollector =
-          Pattern.compile("org\\.apache\\.hadoop" +
-                  "\\.mapred\\.MapTask:\\s+Map\\s+output\\s+collector.*$");
+  private static Pattern mapOps =
+          Pattern.compile("org\\.apache\\.hadoop\\.hive\\.ql\\.exec\\.mr\\.ExecMapper:$");
+  private static Pattern reduceOps =
+          Pattern.compile(".*ExecReducer:$");
   private static Pattern operator =
-          Pattern.compile("<Parent>.*</Parent>\\s*$|<\\w+>Id =\\d+\\s*$|<\\w+>\\s*$|</\\w+>\\s*$");
+          Pattern.compile("<(\\w+)>Id =(\\d+)\\s.*$");
+  private static Pattern endOperator =
+          Pattern.compile("<Parent>.*</Parent>\\s.*$|</\\w+>\\s.*$");
+  private static Pattern opProcFinish = Pattern.compile("org\\.apache\\.hadoop\\." +
+          "hive\\.ql\\.exec\\.(\\w+): (\\d+) finished\\. closing.*$");
+  private static Pattern opProcRows = Pattern.compile("org\\.apache\\.hadoop\\." +
+          "hive\\.ql\\.exec\\.(\\w+): (\\d+) forwarded (\\d+) rows.*$");
 
   public static String jobAndID( String path ){
     Matcher match = jobPattern.matcher(path);
     if(match.find()){
+      LOG.debug("Matched job_[n]_[n] pattern in path name of file");
       return match.group();
     }
-    LOG.debug("Can not match job_[n]_[n] pattern in path name of file");
     return null;
   }
 
   public static String jobID( String path ){
     Matcher match = jobID.matcher(path);
     if(match.find()){
+      LOG.debug("Matched _[n]_[n] pattern in path name of file");
       return match.group();
     }
-    LOG.debug("Can not match _[n]_[n] pattern in path name of file");
     return null;
   }
 
+  public static String taskID( String path ){
+    Matcher match = taskID.matcher(path);
+    if(match.find()){
+      LOG.debug("Matched \\d+_\\d+_[m|r]_\\d+ pattern in path name of file");
+      return match.group(1);
+    }
+    return null;
+  }
 
-  public static String operator(String str){
+  public static String mapOps(String str){
+    Matcher match = mapOps.matcher(str);
+    if(match.find()){
+      LOG.debug("Matched org.apache.hadoop.hive.ql.exec.mr.ExecMapper:$ " +
+              "pattern in string");
+      return match.group();
+    }
+    return null;
+  }
+
+  public static String reduceOps(String str){
+    Matcher match = reduceOps.matcher(str);
+    if(match.find()){
+      LOG.debug("Matched.*ExecReducer:$ pattern in string");
+      return match.group();
+    }
+    return null;
+  }
+
+  public static Tuple<String,String> operator(String str){
     Matcher match = operator.matcher(str);
     if(match.find()){
+      LOG.debug("Matched <(\\w+)>Id =(\\d+)\\s*$ pattern in string");
+      return new Tuple<String,String>(match.group(1),match.group(2));
+    }
+    return null;
+  }
+
+  public static String endOperator(String str){
+    Matcher match = endOperator.matcher(str);
+    if(match.find()){
+      LOG.debug("Matched </\\w+>\\s*$ pattern in string");
       return match.group();
     }
-    LOG.debug("Can not match <Parent>.*</Parent>\\s*$|<\\w+>Id =\\d+\\s*$|<\\w+>\\s*$|</\\w+>\\s*$ pattern in string");
     return null;
   }
 
-  public static String mapTaskOutputCollector(String str){
-    Matcher match = mapTaskOutputCollector.matcher(str);
-    if(match.find()){
-      String[] mixStr = match.group().split(" ");
-      return mixStr[mixStr.length - 1];
-    }
-    LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: Map output +collector.*$ pattern in string");
-    return null;
-  }
-
-  public static HashMap<String, Long> mapTaskKv(String str){
-    HashMap<String, Long> taskKv = new HashMap<String, Long>();
-    Matcher match = mapTaskKv.matcher(str);
-    if(match.find()){
-      String[] mixStr = match.group().split(" ");
-      taskKv.put(mixStr[1], Long.valueOf(mixStr[3].substring(0, mixStr[3].length() - 2)));
-      taskKv.put(mixStr[4],Long.valueOf(mixStr[6]));
-
-    }else {
-      LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: kvstart = \\d+; length.*$ pattern in string");
-    }
-    return taskKv;
-  }
-
-  public static HashMap<String, Long> mapTaskBuf(String str){
-    HashMap<String, Long> taskBuf = new HashMap<String, Long>();
-    Matcher match = mapTaskBuf.matcher(str);
-    if(match.find()){
-      String[] mixStr = match.group().split(" ");
-      taskBuf.put(mixStr[1],Long.valueOf(mixStr[3].substring(0,mixStr[3].length()-2)));
-      taskBuf.put(mixStr[4],Long.valueOf(mixStr[6]));
-    }else {
-      LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: bufstart = \\d+; bufvoid.*$ pattern in string");
-    }
-    return taskBuf;
-  }
-
-  public static String taskSoftLimit(String str){
-    Matcher match =  taskSoftLimit.matcher(str);
-    if(match.find()){
-      String[] mixStr = match.group().split(" ");
-      return mixStr[mixStr.length - 1];
-    }
-    LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: soft limit at.*$ pattern in string");
-    return null;
-  }
-
-  public static String taskSortMB(String str){
-    Matcher match =  taskSortMB.matcher(str);
-    if(match.find()){
-      String[] mixStr = match.group().split(" ");
-      return mixStr[mixStr.length - 1];
-    }
-    LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: mapreduce.task.io.sort.mb:.*$ pattern in string");
-    return null;
-  }
-
-  public static Integer numReduceTasks(String str){
-    Matcher match =  numReduceTasks.matcher(str);
-    if(match.find()){
-      String[] mixStr = match.group().split(" ");
-      return Integer.parseInt(mixStr[mixStr.length - 1]);
-    }
-    LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: numReduceTasks:.*$ pattern in string");
-    return null;
-  }
-
-  public static String kvi(String str){
-    Matcher match =  kvi.matcher(str);
-    if(match.find()){
-      String[] mixStr = match.group().split(" ");
-      return mixStr[mixStr.length - 1];
-    }
-    LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: (EQUATOR).*$ pattern in string");
-    return null;
-  }
 
   public static String splitPath(String str){
     Matcher match =  mapTaskInput.matcher(str);
@@ -159,7 +109,6 @@ public class PatternParse {
         String[] mixStr = innerMatch.group().split(":");
         return mixStr[1];
       }else{
-
         LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: Processing split: Paths:(/\\w)+:\\d+\\+\\d+,(/\\w)+:\\d+\\+\\d+ pattern in string");
       }
     }else{
@@ -168,7 +117,7 @@ public class PatternParse {
     return null;
   }
 
-  public static String  inputFormat(String str){
+  public static String inputFormat(String str){
     Matcher match =  mapTaskInput.matcher(str);
     if(match.find()){
       Matcher innerMatch = inputFormat.matcher(match.group());
@@ -176,7 +125,6 @@ public class PatternParse {
         String[] mixStr = innerMatch.group().split(":");
         return mixStr[1];
       }else{
-
         LOG.debug("Can not match org.apache.hadoop.mapred.MapTask: Processing split: InputFormatClass:.*$ pattern in string");
       }
     }else{
@@ -185,5 +133,24 @@ public class PatternParse {
     return null;
   }
 
+  public static Matcher opProcFinish(String str){
+    Matcher match = opProcFinish.matcher(str);
+    if(match.find()){
+      LOG.debug("org.apache.hadoop.hive.ql.exec.(\\w+): (\\d+) finished." +
+              " closing.*$");
+      return match;
+    }
+    return null;
+  }
+
+  public static Matcher opProcRows(String str){
+    Matcher match = opProcRows.matcher(str);
+    if(match.find()){
+      LOG.debug("org.apache.hadoop.hive.ql.exec.(\\w+): " +
+              "(\\d+) forwarded (\\d+) rows.*$");
+      return match;
+    }
+    return null;
+  }
 
 }

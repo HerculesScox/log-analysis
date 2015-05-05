@@ -1,10 +1,17 @@
 package base;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultiset;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -13,25 +20,34 @@ import java.util.List;
 public abstract class Task {
   private static Log LOG = LogFactory.getLog(Task.class);
   private String taskID;
-  private String ContainerID:
+  private Path taskLogPath;
+  private JobHistoryParser.TaskInfo taskInfo;
+  /**Key is operator identifier, The value is operator object*/
+  private LinkedHashMap<String,Node> operators;
 
 
-  /**
-   * To generate digest of entity related content
-   */
-
-  public class Node{
-    protected List<Node> childNode;
-    protected List<Node> parentNode;
-    protected String nodeId;
-    protected String nodeName;
-
-    public Node(){
-      ArrayList<Node> childNode = new ArrayList<Node>();
-      ArrayList<Node> parentNode = new ArrayList<Node>();
-      nodeId = "";
-    }
+  public Task(Path taskLogPath, JobHistoryParser.TaskInfo taskInfo,
+              LinkedHashMap<String, Node> operators) {
+    this.taskID = taskInfo.getTaskId().toString();
+    this.taskLogPath = taskLogPath;
+    this.taskInfo = taskInfo;
+    this.operators = operators;
+    this.operators = new LinkedHashMap<String, Node>();
   }
 
+  public String getTaskID() {
+    return taskID;
+  }
 
+  public Path getTaskLogPath() {
+    return taskLogPath;
+  }
+
+  public JobHistoryParser.TaskInfo getTaskInfo() {
+    return taskInfo;
+  }
+
+  public LinkedHashMap<String, Node> getOperators() {
+    return operators;
+  }
 }

@@ -7,12 +7,14 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobPriority;
+import org.apache.hadoop.mapred.TaskStatus;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.jobhistory.*;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.util.StringInterner;
+import org.apache.hadoop.yarn.api.records.ContainerId;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -96,6 +98,9 @@ public class JhistFileParser implements HistoryEventHandler {
     Map<JobACL, AccessControlList> jobACLs;
     boolean uberized;
 
+    Map<TaskID, TaskInfo> tasksMap;
+    Map<TaskAttemptID, TaskAttemptInfo> completedTaskAttemptsMap;
+
     /**  Intended for used store Job info of each query*/
     public JobInfoQ(){
       workflowId = workflowName = workflowNodeName =
@@ -106,6 +111,8 @@ public class JhistFileParser implements HistoryEventHandler {
       username = jobname = jobConfPath = jobQueueName = "";
       jobACLs = new HashMap<JobACL, AccessControlList>();
       priority = JobPriority.NORMAL;
+      tasksMap = new HashMap<TaskID, TaskInfo>();
+      completedTaskAttemptsMap = new HashMap<TaskAttemptID, TaskAttemptInfo>();
     }
 
     /** Print all the job information for test */
@@ -125,6 +132,7 @@ public class JhistFileParser implements HistoryEventHandler {
       System.out.println("TOTAL_MAPS: " + totalMaps);
       System.out.println("TOTAL_REDUCES: " + totalReduces);
       if (mapCounters != null) {
+
         System.out.println("MAP_COUNTERS:" + mapCounters.toString());
       }
       if (reduceCounters != null) {
@@ -240,6 +248,14 @@ public class JhistFileParser implements HistoryEventHandler {
     public Map<JobACL, AccessControlList> getJobACLs() {
       return jobACLs;
     }
+
+    public Map<TaskID, TaskInfo> getTasksMap() {
+      return tasksMap;
+    }
+
+    public Map<TaskAttemptID, TaskAttemptInfo> getCompletedTaskAttemptsMap() {
+      return completedTaskAttemptsMap;
+    }
   }
 
   private void handleJobSubmittedEvent( JobSubmittedEvent event){
@@ -328,8 +344,339 @@ public class JhistFileParser implements HistoryEventHandler {
       case JOB_FINISHED:
         handleJobFinishedEvent((JobFinishedEvent)event);
         break;
+      case TASK_STARTED:
+        handleTaskStartedEvent((TaskStartedEvent) event);
+        break;
+      case TASK_FAILED:
+        handleTaskFailedEvent((TaskFailedEvent) event);
+        break;
+      case TASK_UPDATED:
+        handleTaskUpdatedEvent((TaskUpdatedEvent) event);
+        break;
+      case TASK_FINISHED:
+        handleTaskFinishedEvent((TaskFinishedEvent) event);
+        break;
+      case MAP_ATTEMPT_STARTED:
+      case CLEANUP_ATTEMPT_STARTED:
+      case REDUCE_ATTEMPT_STARTED:
+      case SETUP_ATTEMPT_STARTED:
+        handleTaskAttemptStartedEvent((TaskAttemptStartedEvent) event);
+        break;
+      case MAP_ATTEMPT_FAILED:
+      case CLEANUP_ATTEMPT_FAILED:
+      case REDUCE_ATTEMPT_FAILED:
+      case SETUP_ATTEMPT_FAILED:
+      case MAP_ATTEMPT_KILLED:
+      case CLEANUP_ATTEMPT_KILLED:
+      case REDUCE_ATTEMPT_KILLED:
+      case SETUP_ATTEMPT_KILLED:
+        handleTaskAttemptFailedEvent(
+                (TaskAttemptUnsuccessfulCompletionEvent) event);
+        break;
+      case MAP_ATTEMPT_FINISHED:
+        handleMapAttemptFinishedEvent((MapAttemptFinishedEvent) event);
+        break;
+      case REDUCE_ATTEMPT_FINISHED:
+        handleReduceAttemptFinishedEvent((ReduceAttemptFinishedEvent) event);
+        break;
       default:
         //Extended part
     }
   }
+
+  /**
+   * TaskInformation is aggregated in this class after parsing
+   */
+  public class TaskInfo {
+    TaskID taskId;
+    long startTime;
+    long finishTime;
+    TaskType taskType;
+    String splitLocations;
+    Counters counters;
+    String status;
+    String error;
+    TaskAttemptID failedDueToAttemptId;
+    TaskAttemptID successfulAttemptId;
+    Map<TaskAttemptID, TaskAttemptInfo> attemptsMap;
+
+    public TaskInfo() {
+      startTime = finishTime = -1;
+      error = splitLocations = "";
+      attemptsMap = new HashMap<TaskAttemptID, TaskAttemptInfo>();
+    }
+
+    public void printAll() {
+      System.out.println("TASK_ID:" + taskId.toString());
+      System.out.println("START_TIME: " + startTime);
+      System.out.println("FINISH_TIME:" + finishTime);
+      System.out.println("TASK_TYPE:" + taskType);
+      if (counters != null) {
+        System.out.println("COUNTERS:" + counters.toString());
+      }
+      for (TaskAttemptID id: attemptsMap.keySet()) {
+        System.out.println(">>>>>>>>>>>>> TaskAttemptID "+ id.getTaskID() );
+        attemptsMap.get(id).printAll();
+      }
+
+//      for (TaskAttemptInfo tinfo: attemptsMap.values()) {
+//        tinfo.printAll();
+//      }
+    }
+
+    /** @return the Task ID */
+    public TaskID getTaskId() { return taskId; }
+    /** @return the start time of this task */
+    public long getStartTime() { return startTime; }
+    /** @return the finish time of this task */
+    public long getFinishTime() { return finishTime; }
+    /** @return the task type */
+    public TaskType getTaskType() { return taskType; }
+    /** @return the split locations */
+    public String getSplitLocations() { return splitLocations; }
+    /** @return the counters for this task */
+    public Counters getCounters() { return counters; }
+    /** @return the task status */
+    public String getTaskStatus() { return status; }
+    /** @return the attempt Id that caused this task to fail */
+    public TaskAttemptID getFailedDueToAttemptId() {
+      return failedDueToAttemptId;
+    }
+    /** @return the attempt Id that caused this task to succeed */
+    public TaskAttemptID getSuccessfulAttemptId() {
+      return successfulAttemptId;
+    }
+    /** @return the error */
+    public String getError() { return error; }
+    /** @return the map of all attempts for this task */
+    public Map<TaskAttemptID, TaskAttemptInfo> getAllTaskAttempts() {
+      return attemptsMap;
+    }
+  }
+
+  /**
+   * Task Attempt Information is aggregated in this class after parsing
+   */
+  public class TaskAttemptInfo {
+    TaskAttemptID attemptId;
+    long startTime;
+    long finishTime;
+    long shuffleFinishTime;
+    long sortFinishTime;
+    long mapFinishTime;
+    String error;
+    String status;
+    String state;
+    TaskType taskType;
+    String trackerName;
+    Counters counters;
+    int httpPort;
+    int shufflePort;
+    String hostname;
+    int port;
+    String rackname;
+    ContainerId containerId;
+
+    /** Create a Task Attempt Info which will store attempt level information
+     * on a history parse.
+     */
+    public TaskAttemptInfo() {
+      startTime = finishTime = shuffleFinishTime = sortFinishTime =
+              mapFinishTime = -1;
+      error =  state =  trackerName = hostname = rackname = "";
+      port = -1;
+      httpPort = -1;
+      shufflePort = -1;
+    }
+    /**
+     * Print all the information about this attempt.
+     */
+    public void printAll() {
+      System.out.println("ATTEMPT_ID:" + attemptId.toString());
+      System.out.println("START_TIME: " + startTime);
+      System.out.println("FINISH_TIME:" + finishTime);
+      System.out.println("ERROR:" + error);
+      System.out.println("TASK_STATUS:" + status);
+      System.out.println("STATE:" + state);
+      System.out.println("TASK_TYPE:" + taskType);
+      System.out.println("TRACKER_NAME:" + trackerName);
+      System.out.println("HTTP_PORT:" + httpPort);
+      System.out.println("SHUFFLE_PORT:" + shufflePort);
+      System.out.println("CONTIANER_ID:" + containerId);
+      if (counters != null) {
+        System.out.println("COUNTERS:" + counters.toString());
+      }
+    }
+
+    /** @return the attempt Id */
+    public TaskAttemptID getAttemptId() { return attemptId; }
+    /** @return the start time of the attempt */
+    public long getStartTime() { return startTime; }
+    /** @return the finish time of the attempt */
+    public long getFinishTime() { return finishTime; }
+    /** @return the shuffle finish time. Applicable only for reduce attempts */
+    public long getShuffleFinishTime() { return shuffleFinishTime; }
+    /** @return the sort finish time. Applicable only for reduce attempts */
+    public long getSortFinishTime() { return sortFinishTime; }
+    /** @return the map finish time. Applicable only for map attempts */
+    public long getMapFinishTime() { return mapFinishTime; }
+    /** @return the error string */
+    public String getError() { return error; }
+    /** @return the state */
+    public String getState() { return state; }
+    /** @return the task status */
+    public String getTaskStatus() { return status; }
+    /** @return the task type */
+    public TaskType getTaskType() { return taskType; }
+    /** @return the tracker name where the attempt executed */
+    public String getTrackerName() { return trackerName; }
+    /** @return the host name */
+    public String getHostname() { return hostname; }
+    /** @return the port */
+    public int getPort() { return port; }
+    /** @return the rack name */
+    public String getRackname() { return rackname; }
+    /** @return the counters for the attempt */
+    public Counters getCounters() { return counters; }
+    /** @return the HTTP port for the tracker */
+    public int getHttpPort() { return httpPort; }
+    /** @return the Shuffle port for the tracker */
+    public int getShufflePort() { return shufflePort; }
+    /** @return the ContainerId for the tracker */
+    public ContainerId getContainerId() { return containerId; }
+  }
+
+  private void handleTaskAttemptFinishedEvent(TaskAttemptFinishedEvent event) {
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskAttemptInfo attemptInfo =
+            taskInfo.attemptsMap.get(event.getAttemptId());
+    attemptInfo.finishTime = event.getFinishTime();
+    attemptInfo.status = StringInterner.weakIntern(event.getTaskStatus());
+    attemptInfo.state = StringInterner.weakIntern(event.getState());
+ //   attemptInfo.counters = event.getCounters();
+    attemptInfo.hostname = StringInterner.weakIntern(event.getHostname());
+    info.completedTaskAttemptsMap.put(event.getAttemptId(), attemptInfo);
+  }
+
+  private void handleReduceAttemptFinishedEvent
+          (ReduceAttemptFinishedEvent event) {
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskAttemptInfo attemptInfo =
+            taskInfo.attemptsMap.get(event.getAttemptId());
+    attemptInfo.finishTime = event.getFinishTime();
+    attemptInfo.status = StringInterner.weakIntern(event.getTaskStatus());
+    attemptInfo.state = StringInterner.weakIntern(event.getState());
+    attemptInfo.shuffleFinishTime = event.getShuffleFinishTime();
+    attemptInfo.sortFinishTime = event.getSortFinishTime();
+//    attemptInfo.counters = event.getCounters();
+    attemptInfo.hostname = StringInterner.weakIntern(event.getHostname());
+    attemptInfo.port = event.getPort();
+    attemptInfo.rackname = StringInterner.weakIntern(event.getRackName());
+    info.completedTaskAttemptsMap.put(event.getAttemptId(), attemptInfo);
+  }
+
+  private void handleMapAttemptFinishedEvent(MapAttemptFinishedEvent event) {
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskAttemptInfo attemptInfo =
+            taskInfo.attemptsMap.get(event.getAttemptId());
+    attemptInfo.finishTime = event.getFinishTime();
+    attemptInfo.status = StringInterner.weakIntern(event.getTaskStatus());
+    attemptInfo.state = StringInterner.weakIntern(event.getState());
+    attemptInfo.mapFinishTime = event.getMapFinishTime();
+//    attemptInfo.counters = event.getCounters();
+    attemptInfo.hostname = StringInterner.weakIntern(event.getHostname());
+    attemptInfo.port = event.getPort();
+    attemptInfo.rackname = StringInterner.weakIntern(event.getRackName());
+    info.completedTaskAttemptsMap.put(event.getAttemptId(), attemptInfo);
+  }
+
+  private void handleTaskAttemptFailedEvent(
+          TaskAttemptUnsuccessfulCompletionEvent event) {
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    if(taskInfo == null) {
+      LOG.warn("TaskInfo is null for TaskAttemptUnsuccessfulCompletionEvent"
+              + " taskId:  " + event.getTaskId().toString());
+      return;
+    }
+    TaskAttemptInfo attemptInfo =
+            taskInfo.attemptsMap.get(event.getTaskAttemptId());
+    if(attemptInfo == null) {
+      LOG.warn("AttemptInfo is null for TaskAttemptUnsuccessfulCompletionEvent"
+              + " taskAttemptId:  " + event.getTaskAttemptId().toString());
+      return;
+    }
+    attemptInfo.finishTime = event.getFinishTime();
+    attemptInfo.error = StringInterner.weakIntern(event.getError());
+    attemptInfo.status = StringInterner.weakIntern(event.getTaskStatus());
+    attemptInfo.hostname = StringInterner.weakIntern(event.getHostname());
+    attemptInfo.port = event.getPort();
+    attemptInfo.rackname = StringInterner.weakIntern(event.getRackName());
+    attemptInfo.shuffleFinishTime = event.getFinishTime();
+    attemptInfo.sortFinishTime = event.getFinishTime();
+    attemptInfo.mapFinishTime = event.getFinishTime();
+  //  attemptInfo.counters = event.getCounters();
+    if(TaskStatus.State.SUCCEEDED.toString().equals(taskInfo.status))
+    {
+      //this is a successful task
+      if(attemptInfo.getAttemptId().equals(taskInfo.getSuccessfulAttemptId()))
+      {
+        // the failed attempt is the one that made this task successful
+        // so its no longer successful. Reset fields set in
+        // handleTaskFinishedEvent()
+        taskInfo.counters = null;
+        taskInfo.finishTime = -1;
+        taskInfo.status = null;
+        taskInfo.successfulAttemptId = null;
+      }
+    }
+    info.completedTaskAttemptsMap.put(event.getTaskAttemptId(), attemptInfo);
+  }
+
+  private void handleTaskAttemptStartedEvent(TaskAttemptStartedEvent event) {
+    TaskAttemptID attemptId = event.getTaskAttemptId();
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+
+    TaskAttemptInfo attemptInfo = new TaskAttemptInfo();
+    attemptInfo.startTime = event.getStartTime();
+    attemptInfo.attemptId = event.getTaskAttemptId();
+    attemptInfo.httpPort = event.getHttpPort();
+    attemptInfo.trackerName = StringInterner.weakIntern(event.getTrackerName());
+    attemptInfo.taskType = event.getTaskType();
+    attemptInfo.shufflePort = event.getShufflePort();
+    attemptInfo.containerId = event.getContainerId();
+
+    taskInfo.attemptsMap.put(attemptId, attemptInfo);
+  }
+
+  private void handleTaskFinishedEvent(TaskFinishedEvent event) {
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    taskInfo.counters = event.getCounters();
+    taskInfo.finishTime = event.getFinishTime();
+    taskInfo.status = TaskStatus.State.SUCCEEDED.toString();
+    taskInfo.successfulAttemptId = event.getSuccessfulTaskAttemptId();
+  }
+
+  private void handleTaskUpdatedEvent(TaskUpdatedEvent event) {
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    taskInfo.finishTime = event.getFinishTime();
+  }
+
+  private void handleTaskFailedEvent(TaskFailedEvent event) {
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    taskInfo.status = TaskStatus.State.FAILED.toString();
+    taskInfo.finishTime = event.getFinishTime();
+    taskInfo.error = StringInterner.weakIntern(event.getError());
+    taskInfo.failedDueToAttemptId = event.getFailedAttemptID();
+    taskInfo.counters = event.getCounters();
+  }
+
+  private void handleTaskStartedEvent(TaskStartedEvent event) {
+    TaskInfo taskInfo = new TaskInfo();
+    taskInfo.taskId = event.getTaskId();
+    taskInfo.startTime = event.getStartTime();
+    taskInfo.taskType = event.getTaskType();
+    taskInfo.splitLocations = event.getSplitLocations();
+    info.tasksMap.put(event.getTaskId(), taskInfo);
+  }
+
 }
