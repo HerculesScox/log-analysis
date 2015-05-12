@@ -17,7 +17,6 @@ import java.util.HashSet;
  * Find All log files input path in HDFS
  */
 public class LogInput {
-  Log LOG = LogFactory.getLog(LogInput.class);
   private static final String JHIST_File = ".jhist";
   private static final String XML_FILE = ".xml";
   private LAConf conf;
@@ -38,7 +37,7 @@ public class LogInput {
   }
 
   /**
-   * generate path  list of .xml  files for all job history files
+   * generate path  list of .xml files for all job history files
    * @return
    * @throws IOException
    */

@@ -97,8 +97,8 @@ public class JhistFileParser implements HistoryEventHandler {
     JobPriority priority;
     Map<JobACL, AccessControlList> jobACLs;
     boolean uberized;
-
-    Map<TaskID, TaskInfo> tasksMap;
+    //TaskID -> TaskInfo
+    Map<String, TaskInfo> tasksMap;
     Map<TaskAttemptID, TaskAttemptInfo> completedTaskAttemptsMap;
 
     /**  Intended for used store Job info of each query*/
@@ -111,7 +111,7 @@ public class JhistFileParser implements HistoryEventHandler {
       username = jobname = jobConfPath = jobQueueName = "";
       jobACLs = new HashMap<JobACL, AccessControlList>();
       priority = JobPriority.NORMAL;
-      tasksMap = new HashMap<TaskID, TaskInfo>();
+      tasksMap = new HashMap<String, TaskInfo>();
       completedTaskAttemptsMap = new HashMap<TaskAttemptID, TaskAttemptInfo>();
     }
 
@@ -249,7 +249,7 @@ public class JhistFileParser implements HistoryEventHandler {
       return jobACLs;
     }
 
-    public Map<TaskID, TaskInfo> getTasksMap() {
+    public Map<String, TaskInfo> getTasksMap() {
       return tasksMap;
     }
 
@@ -414,14 +414,11 @@ public class JhistFileParser implements HistoryEventHandler {
       if (counters != null) {
         System.out.println("COUNTERS:" + counters.toString());
       }
+
       for (TaskAttemptID id: attemptsMap.keySet()) {
-        System.out.println(">>>>>>>>>>>>> TaskAttemptID "+ id.getTaskID() );
         attemptsMap.get(id).printAll();
       }
 
-//      for (TaskAttemptInfo tinfo: attemptsMap.values()) {
-//        tinfo.printAll();
-//      }
     }
 
     /** @return the Task ID */
@@ -547,7 +544,7 @@ public class JhistFileParser implements HistoryEventHandler {
   }
 
   private void handleTaskAttemptFinishedEvent(TaskAttemptFinishedEvent event) {
-    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId().toString());
     TaskAttemptInfo attemptInfo =
             taskInfo.attemptsMap.get(event.getAttemptId());
     attemptInfo.finishTime = event.getFinishTime();
@@ -560,7 +557,7 @@ public class JhistFileParser implements HistoryEventHandler {
 
   private void handleReduceAttemptFinishedEvent
           (ReduceAttemptFinishedEvent event) {
-    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId().toString());
     TaskAttemptInfo attemptInfo =
             taskInfo.attemptsMap.get(event.getAttemptId());
     attemptInfo.finishTime = event.getFinishTime();
@@ -576,7 +573,7 @@ public class JhistFileParser implements HistoryEventHandler {
   }
 
   private void handleMapAttemptFinishedEvent(MapAttemptFinishedEvent event) {
-    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId().toString());
     TaskAttemptInfo attemptInfo =
             taskInfo.attemptsMap.get(event.getAttemptId());
     attemptInfo.finishTime = event.getFinishTime();
@@ -592,7 +589,7 @@ public class JhistFileParser implements HistoryEventHandler {
 
   private void handleTaskAttemptFailedEvent(
           TaskAttemptUnsuccessfulCompletionEvent event) {
-    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId().toString());
     if(taskInfo == null) {
       LOG.warn("TaskInfo is null for TaskAttemptUnsuccessfulCompletionEvent"
               + " taskId:  " + event.getTaskId().toString());
@@ -634,7 +631,7 @@ public class JhistFileParser implements HistoryEventHandler {
 
   private void handleTaskAttemptStartedEvent(TaskAttemptStartedEvent event) {
     TaskAttemptID attemptId = event.getTaskAttemptId();
-    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId().toString());
 
     TaskAttemptInfo attemptInfo = new TaskAttemptInfo();
     attemptInfo.startTime = event.getStartTime();
@@ -649,7 +646,7 @@ public class JhistFileParser implements HistoryEventHandler {
   }
 
   private void handleTaskFinishedEvent(TaskFinishedEvent event) {
-    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId().toString());
     taskInfo.counters = event.getCounters();
     taskInfo.finishTime = event.getFinishTime();
     taskInfo.status = TaskStatus.State.SUCCEEDED.toString();
@@ -657,12 +654,12 @@ public class JhistFileParser implements HistoryEventHandler {
   }
 
   private void handleTaskUpdatedEvent(TaskUpdatedEvent event) {
-    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId().toString());
     taskInfo.finishTime = event.getFinishTime();
   }
 
   private void handleTaskFailedEvent(TaskFailedEvent event) {
-    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
+    TaskInfo taskInfo = info.tasksMap.get(event.getTaskId().toString());
     taskInfo.status = TaskStatus.State.FAILED.toString();
     taskInfo.finishTime = event.getFinishTime();
     taskInfo.error = StringInterner.weakIntern(event.getError());
@@ -676,7 +673,7 @@ public class JhistFileParser implements HistoryEventHandler {
     taskInfo.startTime = event.getStartTime();
     taskInfo.taskType = event.getTaskType();
     taskInfo.splitLocations = event.getSplitLocations();
-    info.tasksMap.put(event.getTaskId(), taskInfo);
+    info.tasksMap.put(event.getTaskId().toString(), taskInfo);
   }
 
 }

@@ -1,27 +1,38 @@
 package base;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser;
+import parse.JhistFileParser;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Created by zhangyun on 4/29/15.
  */
 public class MapTask extends Task {
   /**The MapTask processing split, input file paths are split file paths*/
-  private String splitFile;
+  private List<String> splitFiles;
+  private String inputFormat;
 
-  public MapTask(JobHistoryParser.TaskInfo taskInfo, Path taskLogPath,
-                 LinkedHashMap<String, Node> operators) {
+  public MapTask( JhistFileParser.TaskInfo taskInfo, Path taskLogPath,
+                 LinkedHashMap<String, Node> operators ,List<String> splitFiles,
+                 String inputFormat) {
     super(taskLogPath, taskInfo, operators);
+    this.splitFiles = new ArrayList<String>();
+    this.splitFiles.addAll(splitFiles);
+    this.inputFormat = inputFormat;
   }
-  public MapTask(Path TaskLogPath){
 
-
+  public void printAll(){
+    System.out.println("TASK_ID: " + taskID);
+    System.out.println(taskInfo.getTaskType());
+    System.out.println("INPUT FILES:");
+    System.out.println(splitFiles);
+    System.out.println("INPUT FORMAT: " + inputFormat );
+    System.out.println("OPTREE: ");
+    for (String k : operators.keySet()){
+      System.out.println(k + " => " + operators.get(k).toString());
+    }
   }
-
-
-
 }

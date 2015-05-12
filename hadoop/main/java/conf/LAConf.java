@@ -4,6 +4,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.StringInterner;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.PropertyConfigurator;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import util.Tuple;
@@ -14,6 +16,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -22,7 +25,7 @@ import java.util.Properties;
  * some configuration options
  */
 public class LAConf extends Configuration {
-  private static Log LOG = LogFactory.getLog(LAConf.class);
+  private static Log LOG = LogFactory.getLog(LAConf.class.getName());
   private static String hadoopConfPath;
   private static Properties props = prop();
 
@@ -35,13 +38,11 @@ public class LAConf extends Configuration {
           ("mapreduce.jobhistory.done-dir",
                   props.getProperty("mapreduce.jobhistory.done-dir"));
 
-  /**
-   * Preprocessing
-   */
+  /** Preprocessing */
   static {
+
     for (Map.Entry<String, String> env : System.getenv().entrySet()) {
       if (env.getKey().equals("HADOOP_CONF_DIR") || env.getKey().equals("HADOOP_CONF")) {
-        LOG.info("Found HADOOP_CONF_DIR value in env");
         hadoopConfPath = env.getValue();
         break;
       }
@@ -53,9 +54,18 @@ public class LAConf extends Configuration {
     parseConfiguration();
   }
 
+  private final  static LAConf conf = new LAConf();
+
+  public static LAConf getConf() throws Exception{
+    if(conf != null){
+      return conf;
+    }else{
+      throw new Exception("Configuration can not be initialized !");
+    }
+  }
   private static Properties prop(){
     Properties  props = new Properties();
-     File[] propFiles = new File("./hadoop/main/resources/").listFiles(
+     File[] propFiles = new File("hadoop/main/resources/").listFiles(
              new FilenameFilter() {
        @Override
        public boolean accept(File dir, String name) {
@@ -65,7 +75,10 @@ public class LAConf extends Configuration {
 
     try {
       for (File file : propFiles) {
-        LOG.info("Loading configuration from : " + file.getAbsolutePath());
+        if( file.getName().startsWith("log4j")){
+          PropertyConfigurator.configure(file.getAbsolutePath());
+          continue;
+        }
         FileInputStream fis = new FileInputStream(file.getAbsoluteFile());
         props.load(fis);
         fis.close();
@@ -76,7 +89,7 @@ public class LAConf extends Configuration {
     return props;
   }
 
-  private void parseConfiguration( ){
+  private static void parseConfiguration( ){
     String yarnSite = hadoopConfPath + "/yarn-site.xml";
     String ylaPath = parseConfiguration( yarnSite , NMLOG.getKey());
     NMLOG.setValue(ylaPath);
@@ -94,7 +107,7 @@ public class LAConf extends Configuration {
    * @param name
    * @return
    */
-  private String parseConfiguration( String logFilePath , String name){
+  private static String parseConfiguration( String logFilePath , String name){
     try {
       DocumentBuilderFactory docBuilderFactory
               = DocumentBuilderFactory.newInstance();

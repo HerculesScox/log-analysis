@@ -11,13 +11,19 @@ public class Node{
   protected String nodeId;
   protected String nodeName;
   //Processing lines numbers;
-  private long rows;
+  private  long rows;
+  //Taken time of processing data
+  private long procTime;
+  //Remark information of node
+  private String remark;
 
   public Node(String nodeName, String ID){
     this.childNode = new ArrayList<Node>();
     this.parentNode = new ArrayList<Node>();
     this.nodeId = ID;
     this.nodeName = nodeName;
+    rows = 0;
+    this.procTime = 0L;
   }
 
   public Node(String nodeName, String ID,
@@ -26,10 +32,13 @@ public class Node{
     this.parentNode = parentNode;
     this.nodeId = ID;
     this.nodeName = nodeName;
+    rows = 0;
   }
 
   public String toString(){
-    return this.nodeName+ "[" + this.nodeId + "]";
+    return this.nodeName+ "[" +
+            this.nodeId + "processing: "+rows+
+            " / taken Time: " + procTime + "]" ;
   }
 
   public String toString(Collection<Node> top) {
@@ -93,5 +102,33 @@ public class Node{
 
   public long getRows() {
     return rows;
+  }
+
+  public void setRows(long rows) {
+    this.rows += rows;
+  }
+
+  public void setParentNode(List<Node> parentNode) {
+    this.parentNode = parentNode;
+  }
+
+  public void setChildNode(List<Node> childNode) {
+    this.childNode = childNode;
+  }
+
+  public String getRemark() {
+    return remark;
+  }
+
+  public void setRemark(String remark) {
+    this.remark = remark;
+  }
+
+  public long getProcTime() {
+    return procTime;
+  }
+
+  public void setProcTime(long procTime) {
+    this.procTime = procTime;
   }
 }

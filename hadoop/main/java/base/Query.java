@@ -50,7 +50,7 @@ public class Query {
   }
 
   /**
-   * this is a flag . when all job logs and task logs of query has
+   * this is a status flag . when all job logs and task logs of query has
    * finished analyze,the flag is true , or false
    * @return
    */

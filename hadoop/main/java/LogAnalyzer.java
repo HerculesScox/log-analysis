@@ -13,6 +13,7 @@ import parse.JhistFileParser;
 import parse.TaskLogParser;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -35,35 +36,34 @@ public class LogAnalyzer extends Observable{
    * should notify Register(Observer) to sore them into DB.
    */
 
-  public void analyze() throws IOException {
+  public void analyze() throws IOException, ParseException {
     JHParser pad = new JHParser(conf);
     TaskLogParser taskParser = new TaskLogParser(conf);
     HashMap<String,ArrayList<Path>> jobIDToTaskPath = taskParser.parsePath();
-    if(jobIDToTaskPath == null){
-      System.out.println("Not found!");
-    }
+
     pad.ParseJsonFile();
     Collection<Query> queries = pad.getQueries().values();
     for(Query q : queries){
       System.out.println("================================================");
       System.out.println(">>QUERY "+ q.getQueryString());
-      System.out.println("\t job dependency : " );
+
       for(Job job : q.getJobs()){
         String jobID = job.getJobInfo().getJobid().toString();
-
-        for(Map.Entry<TaskID, JhistFileParser.TaskInfo> map : job.getJobInfo().getTasksMap().entrySet()){
-          System.out.println("----------------- ");
-          System.out.println(map.getKey().toString() + " => ");
-          map.getValue().printAll();
-        }
-
+        System.out.println(job.toJSON());
+        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         for(Path p : jobIDToTaskPath.get(jobID)){
-         // taskParser.parse(job, p);
-          System.out.println("\tTask path : "+ p.toString());
+          taskParser.parse(job, p);
+          job.chopKilledTask();
+          for(TaskID id : job.getTasks().keySet()){
+            System.out.println(id.toString() + " => ");
+            job.getTasks().get(id).printAll();
+          }
+          System.out.println("------------------------------------ ");
         }
+        System.out.println("******* Total task numbers: "+ job.getJobInfo().getTasksMap().size());
+        System.out.println("*******  Actual task numbers: "+ job.getTasks().size());
+        break;
       }
-      System.out.println("================================================");
-      break;
     }
 
   }

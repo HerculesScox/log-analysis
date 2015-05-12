@@ -2,6 +2,7 @@ package parse;
 
 import base.MapTask;
 import base.Node;
+import base.ReduceTask;
 import conf.LAConf;
 import base.Job;
 import org.apache.commons.logging.Log;
@@ -9,11 +10,15 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
 import util.PatternParse;
 import util.Tuple;
 
 import java.io.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 
@@ -27,17 +32,17 @@ public class TaskLogParser {
 
   private static HashMap<String,String> opSet = new HashMap<String,String>();
   static {
-    opSet.put("MAP", "MapOperator");
-    opSet.put("RS", "ReduceSinkOperator");
-    opSet.put("TS", "TableScanOperatr");
-    opSet.put("FIL", "FilterOperator");
-    opSet.put("SEL", "SelectOperator");
-    opSet.put("GBY", "GroupByOperator");
-    opSet.put("JOIN","JoinOperator");
-    opSet.put("FS", "FileSinkOperator");
-    opSet.put("EX", "ExtractOperator");
-    opSet.put("UNION", "UnionOperator");
-    //opSet.put("LIM","LimtOperator");
+    opSet.put("MapOperator", "MAP");
+    opSet.put("ReduceSinkOperator", "RS");
+    opSet.put("TableScanOperator", "TS");
+    opSet.put("FilterOperator", "FIL");
+    opSet.put("SelectOperator", "SEL");
+    opSet.put("GroupByOperator", "GBY");
+    opSet.put("JoinOperator", "JOIN");
+    opSet.put("FileSinkOperator", "FS");
+    opSet.put("ExtractOperator","EX");
+    opSet.put("UnionOperator","UNION");
+    //opSet.put("LimtOperator", "LIM");
   }
   public TaskLogParser(LAConf conf) {
     this.conf = conf;
@@ -65,64 +70,216 @@ public class TaskLogParser {
     return idToPaths;
   }
 
-  public void parse(Job job ,Path taskLog) throws  IOException{
+  public void parse(Job job ,Path taskLog) throws  IOException,ParseException {
     FileSystem fs = taskLog.getFileSystem(conf);
     FSDataInputStream in = fs.open(taskLog);
     BufferedReader br = new BufferedReader(new InputStreamReader(in));
-    Map<TaskID,JhistFileParser.TaskInfo> tasks = job.getJobInfo().getTasksMap();
+    Map<String,JhistFileParser.TaskInfo> tasks = job.getJobInfo().getTasksMap();
     String line;
+
+    //data format of log
+    DateFormat fmtDateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+    //<Operator Name -> <first forwarding time , last forwarding time>>
+    HashMap<String,Tuple<Long,Long>> opToProcTime =
+            new HashMap<String, Tuple<Long, Long>>();
+
+    //input files format of Map tasks
+    String mapInputFormat = "";
+    //Store split files paths of map task
+    List<String> mapSplitFiles = new ArrayList<String>();
+    //Store input task(map) of reduce task
+    HashSet<TaskAttemptID> attemptTaskID = new HashSet<TaskAttemptID>();
+
+    //Store all operator of each task , it will be clear
+    //after analyzing log of one task
     LinkedHashMap<String,Node> operators = new LinkedHashMap<String, Node>();
+
+    //The following status variables are used , in order to reduce
+    //pattern match times
     //To identify task type;
     boolean isMapTask = false ,isRedTask = false;
     //To identify finished of analyzing operator
     boolean opsEnd = false;
-    //Start to collect process information of operators
-    boolean procFinished = false;
+    //To identify operator process finished
+    boolean opProcFinish = false;
+    //To identify operator forwarding status
+    boolean isForwarding = false;
 
-    MapTask mapTask = null;
-
-    while( (line = br.readLine()) != null) {
+    while ((line = br.readLine()) != null) {
+      /**One line just matched one pattern, when find them. The
+       * remain pattern can be skipped.*/
       String matchedStr = null;
-      if ((matchedStr = PatternParse.mapOps(line)) != null) {
-        System.out.println(">>>>>>>>>>>>>>>> " + matchedStr);
+      Matcher matcher = null;
+      if ((matcher = PatternParse.mapTaskInput(line)) != null) {
+        for (String s : matcher.group(1).split(",")){
+          mapSplitFiles.add(s);
+        }
+        mapInputFormat = matcher.group(2);
         //initialize status value of each map task
         isMapTask = true;
-        opsEnd = false;
-        procFinished = false;
         continue;
       }
-      if ((matchedStr = PatternParse.reduceOps(line)) != null) {
-        System.out.println(">>>>>>>>>>>>>>>> " + matchedStr);
+
+      if (!isRedTask &&(matchedStr = PatternParse.reduceTaskInput(line)) != null) {
+        for (String ati :matchedStr.split(",") ){
+          attemptTaskID.add(TaskAttemptID.forName(ati));
+        }
+        continue;
+      }
+
+      if (PatternParse.reduceOps(line) != null) {
         isRedTask = true;
         continue;
       }
-      if(isMapTask) {
+
+      //Processing Map task log
+      if (isMapTask) {
+        if ( !opsEnd && PatternParse.mapOps(line) != null) {
+          //initialize status value of each map task
+          opsEnd = false;
+          continue;
+        }
+
         Tuple<String,String> tuple;
         if ( !opsEnd && (tuple = PatternParse.operator(line)) != null ) {
-          System.out.println(">>>>>>>>>>>>>>>> " + matchedStr);
           Node node = new Node(tuple.getKey(), tuple.getValue());
-          operators.put(node.toString(), node);
-          continue;
-        }
-        if (PatternParse.endOperator(line) != null){
-          opsEnd = true;
-          continue;
-        }
-        Matcher matcher = null;
-        if(PatternParse.opProcFinish(line) != null){
-          procFinished = true;
-          continue;
-        }
-        if( procFinished && (matcher = PatternParse.opProcRows(line)) != null){
-          String opName = matcher.group(1);
-          String opID = matcher.group(2);
-          long rows = Long.valueOf(matcher.group(3));
+          if(tuple.getKey().equals("MAP")){
+            job.getTopOps().add(node);
+          }
+          operators.put(tuple.getKey(), node);
           continue;
         }
 
+        if ( !opsEnd && PatternParse.endOperator(line)){
+          opsEnd = true;
+          opProcFinish = false;
+          isForwarding= true;
+          continue;
+        }
+
+        if( isForwarding && (matcher = PatternParse.opForwarding(line)) != null){
+          String opName = opSet.get(matcher.group(2));
+          String procTime = matcher.group(1);
+          long time = fmtDateTime.parse(procTime).getTime();
+          if(opToProcTime.containsKey(opName)){
+            Tuple<Long ,Long> execTime = opToProcTime.get(opName);
+            execTime.setValue(time);
+          }else{
+            opToProcTime.put(opName,new Tuple<Long, Long>(time, 0L));
+          }
+        }
+
+        if ( PatternParse.opProcFinish(line) != null){
+          opProcFinish = true;
+          isForwarding = false;
+          continue;
+        }
+
+        if (opProcFinish && (matcher = PatternParse.opProcRows(line)) != null){
+          String opName = opSet.get(matcher.group(1));
+          long rows = Long.valueOf(matcher.group(3));
+          if(operators.containsKey(opName)) {
+            operators.get(opName).setRows(rows);
+          }
+          continue;
+        }
+
+        if ((matchedStr = PatternParse.taskID(line)) != null) {
+          String taskID = "task_" + matchedStr;
+          JhistFileParser.TaskInfo taskInfo = job.getJobInfo().getTasksMap().get(taskID);
+          Tuple<Long, Long> execTime = null;
+          for(String opName : operators.keySet()){
+             execTime = opToProcTime.get(opName);
+             operators.get(opName).setProcTime(execTime.getValue() - execTime.getKey());
+          }
+          MapTask mapTask = new MapTask(taskInfo, taskLog, operators,
+                  mapSplitFiles, mapInputFormat);
+          job.getTasks().put(TaskID.forName(taskID), mapTask);
+          LOG.info("Create A Map Task " + taskID);
+          //container and status value will be reset
+          operators.clear();
+          mapSplitFiles.clear();
+          opToProcTime.clear();
+          mapInputFormat = "";
+          opsEnd = false;
+          isMapTask = false;
+          continue;
+        }
       }
 
+      //Processing Reduce task log
+      if (isRedTask) {
+        if (!opsEnd &&  PatternParse.reduceOps(line) != null) {
+          //initialize status value of each map task
+          opProcFinish = false;
+          continue;
+        }
+        Tuple<String,String> tuple;
+        if (!opsEnd && (tuple = PatternParse.operator(line)) != null ) {
+          Node node = new Node(tuple.getKey(), tuple.getValue());
+          operators.put(tuple.getKey(), node);
+          continue;
+        }
+        if (!opsEnd && PatternParse.endOperator(line) ){
+          opsEnd = true;
+          opProcFinish = false;
+          isForwarding= true;
+          continue;
+        }
 
+        if( isForwarding && (matcher = PatternParse.opForwarding(line)) != null){
+          String opName = opSet.get(matcher.group(2));
+          String procTime = matcher.group(1);
+          long time = fmtDateTime.parse(procTime).getTime();
+          if(opToProcTime.containsKey(opName)){
+            Tuple<Long ,Long> execTime = opToProcTime.get(opName);
+            execTime.setValue(time);
+          }else{
+            opToProcTime.put(opName,new Tuple<Long, Long>(time, 0L));
+          }
+        }
+
+        if (PatternParse.opProcFinish(line) != null){
+          opProcFinish = true;
+          isForwarding = false;
+          continue;
+        }
+
+        if (opProcFinish &&(matcher = PatternParse.opProcRows(line)) != null){
+          String opName = opSet.get(matcher.group(1));
+          long rows = Long.valueOf(matcher.group(3));
+          operators.get(opName).setRows(rows);
+          continue;
+        }
+
+        //extract FileSinkOperator
+        if ((matchedStr = PatternParse.FSpath(line)) != null){
+          operators.get("FS").setRemark(matchedStr);
+          continue;
+        }
+
+        if ((matchedStr = PatternParse.taskID(line)) != null) {
+          String taskID = "task_" + matchedStr;
+          JhistFileParser.TaskInfo taskInfo = job.getJobInfo().getTasksMap().get(taskID);
+          for(String opName : operators.keySet()){
+            if(opName.equals("FS")){
+              //FS has not forward processing.
+              continue;
+            }
+            Tuple<Long ,Long> execTime = opToProcTime.get(opName);
+            operators.get(opName).setProcTime(execTime.getValue() - execTime.getKey());
+          }
+          ReduceTask reduceTask= new ReduceTask(taskInfo, taskLog, operators, attemptTaskID);
+          LOG.info("Create A Reduce Task " + taskID);
+          job.getTasks().put(TaskID.forName(taskID),reduceTask);
+          //container and status value will be reset
+          operators.clear();
+          attemptTaskID.clear();
+          opToProcTime.clear();
+          opsEnd = false;
+          isRedTask = false;
+        }
+      }
     }
   }
 }

@@ -4,11 +4,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.PropertyConfigurator;
 import parse.JHParser;
 import parse.JhistFileParser;
 import parse.LogInput;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.HashSet;
 import java.util.List;
 
@@ -27,10 +29,9 @@ public class Driver {
 
 
   public static void main(String[] args ){
-    LAConf conf = new LAConf();
-
 
     try{
+      LAConf conf = LAConf.getConf();
       LogAnalyzer LA = new LogAnalyzer(conf);
       LA.analyze();
 
@@ -46,7 +47,11 @@ public class Driver {
 
 
 
+    }catch (ParseException p){
+      p.printStackTrace();
     }catch (IOException e){
+      e.printStackTrace();
+    }catch( Exception e){
       e.printStackTrace();
     }
   }
