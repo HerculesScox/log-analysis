@@ -37,8 +37,8 @@ public class Node{
 
   public String toString(){
     return this.nodeName+ "[" +
-            this.nodeId + "processing: "+rows+
-            " / taken Time: " + procTime + "]" ;
+            this.nodeId + "] <processing:" + rows +
+            "/taken Time:" + procTime + ">";
   }
 
   public String toString(Collection<Node> top) {

@@ -1,21 +1,22 @@
 package parse;
 
+import base.Job;
 import base.MapTask;
 import base.Node;
 import base.ReduceTask;
 import conf.LAConf;
-import base.Job;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
 import util.PatternParse;
 import util.Tuple;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -71,7 +72,7 @@ public class TaskLogParser {
   }
 
   public void parse(Job job ,Path taskLog) throws  IOException,ParseException {
-    FileSystem fs = taskLog.getFileSystem(conf);
+    org.apache.hadoop.fs.FileSystem fs = taskLog.getFileSystem(conf);
     FSDataInputStream in = fs.open(taskLog);
     BufferedReader br = new BufferedReader(new InputStreamReader(in));
     Map<String,JhistFileParser.TaskInfo> tasks = job.getJobInfo().getTasksMap();
@@ -80,7 +81,7 @@ public class TaskLogParser {
     //data format of log
     DateFormat fmtDateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
     //<Operator Name -> <first forwarding time , last forwarding time>>
-    HashMap<String,Tuple<Long,Long>> opToProcTime =
+    HashMap<String, Tuple<Long,Long>> opToProcTime =
             new HashMap<String, Tuple<Long, Long>>();
 
     //input files format of Map tasks
@@ -92,7 +93,7 @@ public class TaskLogParser {
 
     //Store all operator of each task , it will be clear
     //after analyzing log of one task
-    LinkedHashMap<String,Node> operators = new LinkedHashMap<String, Node>();
+    LinkedHashMap<String, Node> operators = new LinkedHashMap<String, Node>();
 
     //The following status variables are used , in order to reduce
     //pattern match times

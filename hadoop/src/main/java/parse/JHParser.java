@@ -20,12 +20,12 @@ public class JHParser {
   private static Log LOG = LogFactory.getLog(JHParser.class);
   private LogInput logInput;
   private LAConf conf;
-  private HashMap<String,Query> queries;
+  private HashMap<String, Query> queries;
 
   public JHParser(LAConf conf) {
     this.conf = conf;
     logInput = new LogInput(conf);
-    queries = new HashMap<String,Query>();
+    queries = new HashMap<String, Query>();
   }
 
   public HashMap<String,Path> parseXMLFilePath() throws IOException{

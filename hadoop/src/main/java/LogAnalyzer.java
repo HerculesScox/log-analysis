@@ -4,12 +4,8 @@ import conf.LAConf;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.Counters;
-import org.apache.hadoop.mapreduce.Counter;
-import org.apache.hadoop.mapreduce.CounterGroup;
 import org.apache.hadoop.mapreduce.TaskID;
 import parse.JHParser;
-import parse.JhistFileParser;
 import parse.TaskLogParser;
 
 import java.io.IOException;
@@ -49,14 +45,17 @@ public class LogAnalyzer extends Observable{
 
       for(Job job : q.getJobs()){
         String jobID = job.getJobInfo().getJobid().toString();
-        System.out.println(job.toJSON());
+    //    System.out.println(job.toJSON());
         System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         for(Path p : jobIDToTaskPath.get(jobID)){
           taskParser.parse(job, p);
           job.chopKilledTask();
           for(TaskID id : job.getTasks().keySet()){
-            System.out.println(id.toString() + " => ");
+//            System.out.println(id.toString() + " => ");
+//            job.getTasks().get(id).printAll();
+             System.out.println(job.getTasks().get(id).toJSON());
             job.getTasks().get(id).printAll();
+
           }
           System.out.println("------------------------------------ ");
         }

@@ -4,19 +4,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.StringInterner;
-import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import util.Tuple;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -65,7 +65,7 @@ public class LAConf extends Configuration {
   }
   private static Properties prop(){
     Properties  props = new Properties();
-     File[] propFiles = new File("hadoop/main/resources/").listFiles(
+     File[] propFiles = new File("hadoop/src/main/resources").listFiles(
              new FilenameFilter() {
        @Override
        public boolean accept(File dir, String name) {

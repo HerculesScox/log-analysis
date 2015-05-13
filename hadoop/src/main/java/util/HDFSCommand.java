@@ -3,11 +3,15 @@ package util;
 import conf.LAConf;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
+
 import java.util.HashSet;
 
 /**

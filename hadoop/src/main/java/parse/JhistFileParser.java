@@ -9,8 +9,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobPriority;
 import org.apache.hadoop.mapred.TaskStatus;
 import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.Counters;
-import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.jobhistory.*;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.util.StringInterner;
@@ -66,8 +64,11 @@ public class JhistFileParser implements HistoryEventHandler {
     }
     return info;
   }
+  public interface LogInfo{
+    public void printAll();
+  }
 
-  public class JobInfoQ {
+  public class JobInfoQ implements LogInfo{
     /**  workflow information */
     String workflowId;
     String workflowName;
@@ -387,7 +388,7 @@ public class JhistFileParser implements HistoryEventHandler {
   /**
    * TaskInformation is aggregated in this class after parsing
    */
-  public class TaskInfo {
+  public class TaskInfo implements LogInfo{
     TaskID taskId;
     long startTime;
     long finishTime;
@@ -411,6 +412,7 @@ public class JhistFileParser implements HistoryEventHandler {
       System.out.println("START_TIME: " + startTime);
       System.out.println("FINISH_TIME:" + finishTime);
       System.out.println("TASK_TYPE:" + taskType);
+      System.out.println("SPLIT_LOCATION: " + splitLocations);
       if (counters != null) {
         System.out.println("COUNTERS:" + counters.toString());
       }

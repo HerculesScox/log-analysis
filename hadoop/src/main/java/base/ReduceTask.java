@@ -41,5 +41,6 @@ public class ReduceTask extends Task {
     for (String k : operators.keySet()){
       System.out.println(k + " => " + operators.get(k).toString());
     }
+    taskInfo.printAll();
   }
 }

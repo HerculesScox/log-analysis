@@ -1,9 +1,15 @@
 package base;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.*;
+import org.json.simple.JSONObject;
 import parse.JhistFileParser;
+import util.FactorStatistics;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -34,5 +40,32 @@ public class MapTask extends Task {
     for (String k : operators.keySet()){
       System.out.println(k + " => " + operators.get(k).toString());
     }
+  }
+
+
+  public String toJSON() throws IOException {
+    JSONObject jobJson = new JSONObject();
+    jobJson.put("taskID", taskID);
+    Iterator<String> c =
+             taskInfo.getCounters().getGroupNames().iterator();
+    while(c.hasNext()){
+      System.out.println(c.next() + ",");
+    }
+
+    LinkedHashMap counterGroup = new LinkedHashMap();
+    LinkedHashMap mapcounter = new LinkedHashMap();
+    LinkedHashMap redcounter = new LinkedHashMap();
+    LinkedHashMap totalcounter = new LinkedHashMap();
+
+    FactorStatistics.mapCounter(mapcounter, taskInfo.getCounters());
+    counterGroup.put("mapCounter",mapcounter);
+
+
+    jobJson.put("Counter",counterGroup);
+
+    StringWriter out = new StringWriter();
+    jobJson.writeJSONString(out);
+
+    return jobJson.toJSONString();
   }
 }

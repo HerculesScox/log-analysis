@@ -1,18 +1,16 @@
 package base;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMultiset;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.Counters;
 import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser;
+import org.json.simple.JSONObject;
 import parse.JhistFileParser;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 /**
  * Created by zhangyun on 4/21/15.
@@ -62,6 +60,7 @@ public abstract class Task {
 //      }
 //      System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
 //    }
+
     System.out.println(taskInfo.getTaskType());
     System.out.println(taskInfo.getAllTaskAttempts().get(taskInfo.getSuccessfulAttemptId()).getState());
 
@@ -71,4 +70,15 @@ public abstract class Task {
 //    }
 //    System.out.println("LOG_PATH: "+ taskLogPath);
   }
+
+  public String toJSON() throws IOException {
+    JSONObject jobJson = new JSONObject();
+    jobJson.put("taskID", taskID);
+
+    StringWriter out = new StringWriter();
+    jobJson.writeJSONString(out);
+
+    return jobJson.toJSONString();
+    }
+
 }

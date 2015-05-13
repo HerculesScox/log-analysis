@@ -1,15 +1,10 @@
 package parse;
 
 import conf.LAConf;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
 import util.HDFSCommand;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -28,7 +23,7 @@ public class LogInput {
   /**
    * generate path  list of .jhist  files for job history files
    * @return
-   * @throws IOException
+   * @throws java.io.IOException
    */
   public HashSet<Path> genJFPath() throws IOException{
     String jPath = conf.getJHLogPath();
@@ -39,7 +34,7 @@ public class LogInput {
   /**
    * generate path  list of .xml files for all job history files
    * @return
-   * @throws IOException
+   * @throws java.io.IOException
    */
   public HashSet<Path> genXFPath() throws IOException{
     String xPath = conf.getJHLogPath();
@@ -50,7 +45,7 @@ public class LogInput {
   /**
    * Get all task execution log file from after yarn aggregation log files
    * @return
-   * @throws IOException
+   * @throws java.io.IOException
    */
   public HashSet<Path> genTFPath()throws IOException{
     String yPath = conf.getYarnLogPath();
