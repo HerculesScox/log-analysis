@@ -35,7 +35,7 @@ public class PatternParse {
   private static Pattern operator =
           Pattern.compile("<(\\w+)>Id =(\\d+)\\s*$");
   private static Pattern FSpath =
-          Pattern.compile("FileSinkOperator: New Fianl Path: FS (.*)$");
+          Pattern.compile("FileSinkOperator: New Final Path: FS (.*)$");
   private static Pattern endOperator =
           Pattern.compile(
                   "(\\s*<Parent>.*<\\\\Parent>\\s*$)" +
@@ -177,5 +177,4 @@ public class PatternParse {
     }
     return null;
   }
-
 }

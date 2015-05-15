@@ -38,41 +38,48 @@ public class DBHander {
   }
 
   /**
-   * execute dynamic sql
+   * execute dynamic sql used
    * @param sql
    * @param params
    * @return
    */
-  public static ResultSet execQuery(String sql , LinkedList<Object> params ){
-      try{
-        int i = 1;
-        PreparedStatement ps = con.prepareStatement(sql);
-        if( params != null ){
-           for(Object p : params){
-            ps.setObject(i++, p);
-           }
-        }
-        return ps.executeQuery();
-      }catch ( SQLException e ){
-        LOG.debug("SQL executed failed!");
+  public static int execQuery(String sql , LinkedList<String> params ){
+    int res = 0;
+    try{
+      int i = 1;
+      PreparedStatement ps = con.prepareStatement(sql);
+      if( params != null ){
+         for(String p : params){
+          ps.setString(i++, p);
+         }
       }
-      return null;
+      res = ps.executeUpdate();
+      ps.close();
+      return  res;
+    }catch ( SQLException e ){
+      System.out.println(e.getMessage());
+      LOG.debug("SQL executed failed!");
+    }
+    return 0;
   }
 
   /**
-   * execute static sql
+   * execute static sql(DML)
    * @param sql
-   * @return
+   * @return  if return value great than 0 ,insert manipulation is successful.
    */
-  public static ResultSet execQuery(String sql){
+  public static int execQuery(String sql){
+    int res = 0;
     try{
-
       Statement statement = con.createStatement();
-      return statement.executeQuery(sql);
+      res = statement.executeUpdate(sql);
+      statement.close();
+      return res;
     }catch ( SQLException e ){
+      System.out.println(e.getMessage());
       LOG.debug("SQL executed failed!");
     }
-    return null;
+    return res;
   }
 
   /**

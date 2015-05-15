@@ -12,7 +12,7 @@
 
     <modules>
         <module>hadoop</module>
-        <module>server</module>
+        <module>logserver</module>
     </modules>
 
     <build>

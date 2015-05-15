@@ -35,7 +35,7 @@ public class MapTask extends Task {
     System.out.println(taskInfo.getTaskType());
     System.out.println("INPUT FILES:");
     System.out.println(splitFiles);
-    System.out.println("INPUT FORMAT: " + inputFormat );
+    System.out.println("INPUT FORMAT: " + inputFormat);
     System.out.println("OPTREE: ");
     for (String k : operators.keySet()){
       System.out.println(k + " => " + operators.get(k).toString());
@@ -45,23 +45,24 @@ public class MapTask extends Task {
 
   public String toJSON() throws IOException {
     JSONObject jobJson = new JSONObject();
-    jobJson.put("taskID", taskID);
-    Iterator<String> c =
-             taskInfo.getCounters().getGroupNames().iterator();
-    while(c.hasNext()){
-      System.out.println(c.next() + ",");
+    LinkedHashMap<String,String> ops = new LinkedHashMap<String,String>();
+    for(String k : operators.keySet()){
+      if( operators.get(k).getRemark() != null){
+        ops.put( k , operators.get(k).toString() +
+                "/" + operators.get(k).getRemark());
+        continue;
+      }
+      ops.put( k , operators.get(k).toString());
     }
-
-    LinkedHashMap counterGroup = new LinkedHashMap();
+    jobJson.put("taskID", taskID.toString());
+    jobJson.put("splitFiles", splitFiles.toString());
+    jobJson.put("inputFormat", inputFormat.toString());
+    jobJson.put("logPath", taskLogPath.toString());
+    jobJson.put("operatorTree", ops);
+    jobJson.put("attemptTask", taskInfo.getAllTaskAttempts().keySet().toString());
     LinkedHashMap mapcounter = new LinkedHashMap();
-    LinkedHashMap redcounter = new LinkedHashMap();
-    LinkedHashMap totalcounter = new LinkedHashMap();
-
     FactorStatistics.mapCounter(mapcounter, taskInfo.getCounters());
-    counterGroup.put("mapCounter",mapcounter);
-
-
-    jobJson.put("Counter",counterGroup);
+    jobJson.put("Counter",mapcounter);
 
     StringWriter out = new StringWriter();
     jobJson.writeJSONString(out);

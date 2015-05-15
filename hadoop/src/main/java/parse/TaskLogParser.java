@@ -43,7 +43,7 @@ public class TaskLogParser {
     opSet.put("FileSinkOperator", "FS");
     opSet.put("ExtractOperator","EX");
     opSet.put("UnionOperator","UNION");
-    //opSet.put("LimtOperator", "LIM");
+    opSet.put("LimitOperator", "LIM");
   }
   public TaskLogParser(LAConf conf) {
     this.conf = conf;
@@ -191,7 +191,11 @@ public class TaskLogParser {
           Tuple<Long, Long> execTime = null;
           for(String opName : operators.keySet()){
              execTime = opToProcTime.get(opName);
-             operators.get(opName).setProcTime(execTime.getValue() - execTime.getKey());
+             if (execTime != null) {
+               operators.get(opName).setProcTime(execTime.getValue() - execTime.getKey());
+             }else {
+               operators.get(opName).setProcTime(0);
+             }
           }
           MapTask mapTask = new MapTask(taskInfo, taskLog, operators,
                   mapSplitFiles, mapInputFormat);
@@ -262,14 +266,17 @@ public class TaskLogParser {
         if ((matchedStr = PatternParse.taskID(line)) != null) {
           String taskID = "task_" + matchedStr;
           JhistFileParser.TaskInfo taskInfo = job.getJobInfo().getTasksMap().get(taskID);
+          Tuple<Long, Long> execTime = null;
+
           for(String opName : operators.keySet()){
-            if(opName.equals("FS")){
-              //FS has not forward processing.
-              continue;
+            execTime = opToProcTime.get(opName);
+            if (execTime != null) {
+              operators.get(opName).setProcTime(execTime.getValue() - execTime.getKey());
             }
-            Tuple<Long ,Long> execTime = opToProcTime.get(opName);
-            operators.get(opName).setProcTime(execTime.getValue() - execTime.getKey());
+            //FileSInkOperator and JoinOperator may be ignored.
+            //continue;
           }
+
           ReduceTask reduceTask= new ReduceTask(taskInfo, taskLog, operators, attemptTaskID);
           LOG.info("Create A Reduce Task " + taskID);
           job.getTasks().put(TaskID.forName(taskID),reduceTask);

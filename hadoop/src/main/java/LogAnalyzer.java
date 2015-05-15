@@ -1,6 +1,7 @@
 import base.Job;
 import base.Query;
 import conf.LAConf;
+import jdbc.Recorder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
@@ -42,26 +43,21 @@ public class LogAnalyzer extends Observable{
     for(Query q : queries){
       System.out.println("================================================");
       System.out.println(">>QUERY "+ q.getQueryString());
-
+      Recorder.queryInfoRecord(q);
       for(Job job : q.getJobs()){
-        String jobID = job.getJobInfo().getJobid().toString();
-    //    System.out.println(job.toJSON());
         System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+        String jobID = job.getJobInfo().getJobid().toString();
+        Recorder.jobInfoRecord(job);
         for(Path p : jobIDToTaskPath.get(jobID)){
           taskParser.parse(job, p);
           job.chopKilledTask();
           for(TaskID id : job.getTasks().keySet()){
-//            System.out.println(id.toString() + " => ");
-//            job.getTasks().get(id).printAll();
-             System.out.println(job.getTasks().get(id).toJSON());
-            job.getTasks().get(id).printAll();
-
+              Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
           }
           System.out.println("------------------------------------ ");
         }
         System.out.println("******* Total task numbers: "+ job.getJobInfo().getTasksMap().size());
         System.out.println("*******  Actual task numbers: "+ job.getTasks().size());
-        break;
       }
     }
 

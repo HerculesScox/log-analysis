@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 import parse.JhistFileParser;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -15,7 +16,7 @@ import java.util.LinkedHashMap;
 /**
  * Created by zhangyun on 4/21/15.
  */
-public abstract class Task {
+public abstract class Task  implements Serializable {
   private static Log LOG = LogFactory.getLog(Task.class);
   protected String taskID;
   protected Path taskLogPath;

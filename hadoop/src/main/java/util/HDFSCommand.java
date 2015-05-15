@@ -24,7 +24,7 @@ public class HDFSCommand {
     return list(path , null, conf);
   }
 
-  public static  HashSet<Path> list(String path , String regex ,
+  public static HashSet<Path> list(String path , String regex ,
                                       LAConf conf)throws IOException{
 
     HashSet<Path> paths = new HashSet<Path>();

@@ -51,7 +51,7 @@ public class JHParser {
       LOG.debug("Generate a new job "+jobInfo.getJobid().toString() +"] ."+
               "The history log file path: " + path +". configuration file paht : "+
               xmlFiles.get(jobInfo.getJobid().toString()));
-      if( ! queries.keySet().contains(jobInfo.getWorkflowId())){
+      if( !queries.keySet().contains(jobInfo.getWorkflowId())){
         Query q = new Query(jobInfo.getWorkflowName(),
                 jobInfo.getWorkflowId(),jobInfo.getWorkflowAdjacencies());
         q.addJob(job);

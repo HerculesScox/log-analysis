@@ -1,5 +1,10 @@
 package base;
 
+import org.json.simple.JSONObject;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,21 +12,21 @@ import java.util.List;
 /**
  * Created by zhangyun on 4/21/15.
  */
-public class Query {
+public class Query  implements Serializable {
   private String workflowID;
   private String queryString;
   private List<Job> jobs;
-  private HashMap<String,String> workflowAdjacencies;
+  private String workflowAdjacencies;
 
   private boolean done = false;
 
   //operator tree
 
-  public Query(String queryString ,String workflowID , String workflowAdjacencies) {
+  public Query(String queryString ,String workflowID ,
+               String workflowAdjacencies)throws IOException {
     this.jobs = new ArrayList<Job>();
     this.queryString = queryString;
     this.workflowID = workflowID;
-    this.workflowAdjacencies = new HashMap<String, String>();
     parse( workflowAdjacencies );
   }
 
@@ -33,15 +38,19 @@ public class Query {
     return jobs;
   }
 
-  private void parse(String workflowAdjacencies){
+  private void parse(String workflowAdjacencies) throws IOException{
+    JSONObject jobJson = new JSONObject();
     String[] groups = workflowAdjacencies.split("\\s+");
     for(String g : groups){
       String[] elements = g.split("=");
-      this.workflowAdjacencies.put(elements[0],elements[1]);
+      jobJson.put(elements[0],elements[1]);
     }
+    StringWriter out = new StringWriter();
+    jobJson.writeJSONString(out);
+    this.workflowAdjacencies = jobJson.toJSONString();
   }
 
-  public HashMap<String, String> getWorkflowAdjacencies() {
+  public String getWorkflowAdjacencies() {
     return workflowAdjacencies;
   }
 

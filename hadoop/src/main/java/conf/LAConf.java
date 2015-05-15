@@ -93,11 +93,11 @@ public class LAConf extends Configuration {
     String yarnSite = hadoopConfPath + "/yarn-site.xml";
     String ylaPath = parseConfiguration( yarnSite , NMLOG.getKey());
     NMLOG.setValue(ylaPath);
-    System.out.println(">>>>>>>" +NMLOG.getKey() +"   " +NMLOG.getValue());
+    LOG.info(NMLOG.getKey() +" path :   " +NMLOG.getValue());
     String jhPath = hadoopConfPath + "/mapred-site.xml";
     String jobHistoryPath = parseConfiguration( jhPath , JHLOG.getKey());
     JHLOG.setValue(jobHistoryPath);
-    System.out.println(">>>>>>>" +JHLOG.getKey() +"   " +JHLOG.getValue());
+    LOG.info(JHLOG.getKey() +" path :    " +JHLOG.getValue());
   }
 
   /**
@@ -172,19 +172,32 @@ public class LAConf extends Configuration {
     return null;
   }
 
-  public String getYarnLogPath(){
+  public static String getYarnLogPath(){
     return NMLOG.getValue();
   }
 
-  public String getJHLogPath(){
+  public static String getJHLogPath(){
     return JHLOG.getValue();
   }
 
-  public String getDfs(){
+  public static String getDfs(){
     return dsf;
   }
 
-  public String getUsername(){ return username;}
+  public static String getSysUsername(){ return username;}
+
+  public static String getDBUsername(){
+    return  props.getProperty("dbUername").trim();
+  }
+
+  public static String getDBHost(){
+    return  props.getProperty("dbHost").trim();
+  }
+
+  public static String getDBPassword(){
+    return  props.getProperty("dbPassword").trim();
+  }
+
 }
 
 

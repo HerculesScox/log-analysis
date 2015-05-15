@@ -8,13 +8,14 @@ import parse.JhistFileParser;
 import util.FactorStatistics;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.*;
 
 /**
  * Created by zhangyun on 4/21/15.
  */
-public class Job {
+public class Job implements Serializable{
   private JhistFileParser.JobInfoQ  jobInfo;
   private Path JHPath;
   private Path confFile;
@@ -73,6 +74,7 @@ public class Job {
     jobJson.put("jobID", jobInfo.getJobid().toString());
     jobJson.put("workflowID", jobInfo.getWorkflowId());
     jobJson.put("workflowNodeName", jobInfo.getWorkflowNodeName());
+    jobJson.put("logPath", confFile);
     jobJson.put("submitTime", jobInfo.getSubmitTime());
     jobJson.put("launchTime", jobInfo.getLaunchTime());
 
