@@ -12,13 +12,6 @@ import java.text.ParseException;
 
 public class Driver {
   private static Log LOG = LogFactory.getLog(Driver.class);
-  private LogInput logInput;
-  private LAConf conf;
-
-  public Driver( ) {
-
-  }
-
 
   public static void main(String[] args ){
 
@@ -26,19 +19,6 @@ public class Driver {
       LAConf conf = LAConf.getConf();
       LogAnalyzer LA = new LogAnalyzer(conf);
       LA.analyze();
-
-      System.out.println(" ============================================ ");
-//      Path path = tmpJob.getJHPath();
-//      FileSystem fs = path.getFileSystem(conf);
-//      JobHistoryParser jp = new JobHistoryParser( fs,path);
-//      for( Map.Entry<TaskID, JobHistoryParser.TaskInfo> task : jp.parse().getAllTasks().entrySet()){
-//        System.out.println("task = " + task.getKey() +"\n value = ");
-//        task.getValue().printAll();
-//      }
-      System.out.println(" ============================================ ");
-
-
-
     }catch (ParseException p){
       p.printStackTrace();
     }catch (IOException e){

@@ -1,6 +1,7 @@
 import base.Job;
 import base.Query;
 import conf.LAConf;
+import jdbc.DBHander;
 import jdbc.Recorder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,7 +22,6 @@ public class LogAnalyzer extends Observable{
 
   private LAConf conf;
   private static HashSet<Query> queries;
-
 
   public LogAnalyzer(LAConf conf) {
     this.conf = conf;
@@ -60,7 +60,7 @@ public class LogAnalyzer extends Observable{
         System.out.println("*******  Actual task numbers: "+ job.getTasks().size());
       }
     }
-
+    DBHander.close();
   }
 
   public void gatherSucc(){

@@ -3,8 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/hadoop/hadoop.iml" filepath="$PROJECT_DIR$/hadoop/hadoop.iml" />
-      <module fileurl="file://$PROJECT_DIR$/log-analysis.iml" filepath="$PROJECT_DIR$/log-analysis.iml" />
-      <module fileurl="file://$PROJECT_DIR$/logserver/logserver.iml" filepath="$PROJECT_DIR$/logserver/logserver.iml" />
+      <module fileurl="file://$PROJECT_DIR$/log.analysis.core.iml" filepath="$PROJECT_DIR$/log.analysis.core.iml" />
       <module fileurl="file://$PROJECT_DIR$/server/server.iml" filepath="$PROJECT_DIR$/server/server.iml" />
     </modules>
   </component>

@@ -38,7 +38,7 @@ public class DBHander {
   }
 
   /**
-   * execute dynamic sql used
+   * execute dynamic DML used
    * @param sql
    * @param params
    * @return
@@ -80,6 +80,41 @@ public class DBHander {
       LOG.debug("SQL executed failed!");
     }
     return res;
+  }
+
+
+  public static ResultSet select(String sql){
+    try{
+      Statement statement = con.createStatement();
+      return statement.executeQuery(sql);
+    }catch ( SQLException e ){
+      System.out.println(e.getMessage());
+      LOG.debug("SQL executed failed!");
+    }
+    return null;
+  }
+
+  /**
+   * execute dynamic DDL used
+   * @param sql
+   * @param params
+   * @return
+   */
+  public static ResultSet select(String sql , LinkedList<String> params ){
+    try{
+      int i = 1;
+      PreparedStatement ps = con.prepareStatement(sql);
+      if( params != null ){
+        for(String p : params){
+          ps.setString(i++, p);
+        }
+      }
+      return ps.executeQuery();
+    }catch ( SQLException e ){
+      System.out.println(e.getMessage());
+      LOG.debug("SQL executed failed!");
+    }
+    return null;
   }
 
   /**
