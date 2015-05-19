@@ -1,7 +1,8 @@
 package dao;
 
-import jdbc.DBHander;
 import bean.Query;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,21 +13,33 @@ import java.util.List;
  * Created by zhangyun on 5/18/15.
  */
 public class QueryDAO {
+  private static Log LOG = LogFactory.getLog(QueryDAO.class);
 
-  public List<Query> getAll() throws SQLException{
+  public List<Query> getAll() {
     List<Query> qlist = new ArrayList<Query>();
-    String sql = "select `queryString`, `workflowID`, `jobDependency`," +
-            " `username` from `log_analysis`.`table_query`";
-    ResultSet res = DBHander.select(sql);
-    while(res.next()){
-      String queryString = res.getString("queryString");
-      String workflowID = res.getString("workflowID");
-      String jobDependency = res.getString("jobDependency");
-      String username = res.getString("username");
-      Query query = new Query(queryString, workflowID, jobDependency, username);
-      qlist.add(query);
+    String sql =
+                " select queryString, j.workflowID, jobDependency," +
+                " username, count(j.workflowID) as jobCount" +
+                "  from `table_query` q join `table_job` j " +
+                " on q.workflowID = j.workflowID" +
+                " group by j.workflowID";
+    try {
+      ResultSet res = DBHander.select(sql);
+      while (res.next()) {
+        String queryString = res.getString("queryString");
+        String workflowID = res.getString("workflowID");
+        String jobDependency = res.getString("jobDependency");
+        String username = res.getString("username");
+        Integer jobAmount = res.getInt("jobCount");
+        Query query = new Query(queryString, workflowID, jobDependency,
+                username, jobAmount);
+        qlist.add(query);
+      }
+      res.close();
+    }catch (SQLException e){
+      LOG.debug(e.getMessage());
+      e.printStackTrace();
     }
-    res.close();
     return qlist;
   }
 

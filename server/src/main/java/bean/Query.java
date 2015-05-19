@@ -12,6 +12,7 @@ public class Query {
   private String username;
   private List<Job> jobList;
   private String remark;
+  private int jobAmount;
 
 
   public Query(String queryStirng, String username, String jobDependency,
@@ -33,11 +34,12 @@ public class Query {
   }
 
   public Query(String queryStirng, String workflowID, String jobDependency,
-           String username) {
+           String username, int jobAmount) {
     this.queryStirng = queryStirng;
     this.workflowID = workflowID;
     this.jobDependency = jobDependency;
     this.username = username;
+    this.jobAmount = jobAmount;
   }
 
   public Query() {
@@ -50,14 +52,6 @@ public class Query {
 
   public void setQueryStirng(String queryStirng) {
     this.queryStirng = queryStirng;
-  }
-
-  public String getWorkflowid() {
-    return workflowID;
-  }
-
-  public void setWorkflowid(String workflowid) {
-    this.workflowID = workflowid;
   }
 
   public String getJobDependency() {
@@ -92,4 +86,19 @@ public class Query {
     this.jobList = jobList;
   }
 
+  public String getWorkflowID() {
+    return workflowID;
+  }
+
+  public void setWorkflowID(String workflowID) {
+    this.workflowID = workflowID;
+  }
+
+  public int getJobAmount() {
+    return jobAmount;
+  }
+
+  public void setJobAmount(int jobAmount) {
+    this.jobAmount = jobAmount;
+  }
 }

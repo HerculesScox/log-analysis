@@ -1,6 +1,5 @@
-package jdbc;
+package dao;
 
-import conf.LAConf;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -13,6 +12,10 @@ import java.util.LinkedList;
  */
 public class DBHander {
   private static Log LOG = LogFactory.getLog(DBHander.class);
+  private final static String host = "jdbc:mysql://localhost:3306/log_analysis";
+  private final static String username = "root";
+  private final static String password = "123456";
+
   private static Connection con = dbConnect();
 
 
@@ -24,8 +27,7 @@ public class DBHander {
     if( con == null) {
       try {
         Class.forName("com.mysql.jdbc.Driver");
-        con = DriverManager.getConnection(LAConf.getDBHost(),
-                LAConf.getDBUsername(), LAConf.getDBPassword());
+        con = DriverManager.getConnection(host, username, password);
         return  con;
       } catch (ClassNotFoundException e) {
         LOG.debug("Can not found com.mysql.jdbc.Driver class!");
@@ -37,49 +39,38 @@ public class DBHander {
     return con;
   }
 
+  public static ResultSet select(String sql){
+    try{
+      Statement statement = con.createStatement();
+      return statement.executeQuery(sql);
+    }catch ( SQLException e ){
+      System.out.println(e.getMessage());
+      LOG.debug("SQL executed failed!");
+    }
+    return null;
+  }
+
   /**
-   * execute dynamic DML used
+   * execute dynamic DDL used
    * @param sql
    * @param params
    * @return
    */
-  public static int execQuery(String sql , LinkedList<String> params ){
-    int res = 0;
+  public static ResultSet select(String sql , LinkedList<String> params ){
     try{
       int i = 1;
       PreparedStatement ps = con.prepareStatement(sql);
       if( params != null ){
-         for(String p : params){
+        for(String p : params){
           ps.setString(i++, p);
-         }
+        }
       }
-      res = ps.executeUpdate();
-      ps.close();
-      return  res;
+      return ps.executeQuery();
     }catch ( SQLException e ){
       System.out.println(e.getMessage());
       LOG.debug("SQL executed failed!");
     }
-    return 0;
-  }
-
-  /**
-   * execute static sql(DML)
-   * @param sql
-   * @return  if return value great than 0 ,insert manipulation is successful.
-   */
-  public static int execQuery(String sql){
-    int res = 0;
-    try{
-      Statement statement = con.createStatement();
-      res = statement.executeUpdate(sql);
-      statement.close();
-      return res;
-    }catch ( SQLException e ){
-      System.out.println(e.getMessage());
-      LOG.debug("SQL executed failed!");
-    }
-    return res;
+    return null;
   }
 
   /**

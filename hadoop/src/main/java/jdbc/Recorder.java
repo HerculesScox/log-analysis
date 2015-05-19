@@ -3,6 +3,7 @@ package jdbc;
 import base.Query;
 import base.Task;
 import base.Job;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -75,9 +76,9 @@ public class Recorder {
   public static boolean queryInfoRecord( Query query ){
     LinkedList<String> params = new LinkedList<String>();
     String sql = "INSERT INTO `log_analysis`.`table_query` " +
-            "(`queryString`, `workflowid`, `jobDependency`, `username`) " +
+            "(`queryString`, `workflowID`, `jobDependency`, `username`) " +
             "VALUES ( ?, ?, ?, ?)";
-    params.add(query.getQueryString());
+    params.add(StringEscapeUtils.escapeSql(query.getQueryString()));
     params.add(query.getWorkflowID());
     params.add(query.getWorkflowAdjacencies());
     params.add(query.getJobs().get(0).getJobInfo().getUsername());
@@ -88,6 +89,7 @@ public class Recorder {
               " database successfully");
       return true;
     }
+    System.out.println("> query record failed!");
     return false;
   }
 }
