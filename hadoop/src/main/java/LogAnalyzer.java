@@ -43,11 +43,9 @@ public class LogAnalyzer extends Observable{
     for(Query q : queries){
       System.out.println("================================================");
       System.out.println(">>QUERY "+ q.getQueryString());
-      Recorder.queryInfoRecord(q);
       for(Job job : q.getJobs()){
         System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         String jobID = job.getJobInfo().getJobid().toString();
-        Recorder.jobInfoRecord(job);
         for(Path p : jobIDToTaskPath.get(jobID)){
           taskParser.parse(job, p);
           job.chopKilledTask();
@@ -56,9 +54,11 @@ public class LogAnalyzer extends Observable{
           }
           System.out.println("------------------------------------ ");
         }
+        Recorder.jobInfoRecord(job);
         System.out.println("******* Total task numbers: "+ job.getJobInfo().getTasksMap().size());
         System.out.println("*******  Actual task numbers: "+ job.getTasks().size());
       }
+      Recorder.queryInfoRecord(q);
     }
     DBHander.close();
   }

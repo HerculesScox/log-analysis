@@ -5,9 +5,13 @@
     </CLASSES>
     <JAVADOC>
       <root url="jar://$MAVEN_REPOSITORY$/xmlenc/xmlenc/0.52/xmlenc-0.52-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/server/lib/spark-core-2.1-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
       <root url="jar://$MAVEN_REPOSITORY$/xmlenc/xmlenc/0.52/xmlenc-0.52-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/server/lib/spark-core-2.1-sources.jar!/" />
+      <root url="file://$PROJECT_DIR$/hadoop/src/main/java" />
+      <root url="file://$PROJECT_DIR$/server/src/main/java" />
     </SOURCES>
   </library>
 </component>

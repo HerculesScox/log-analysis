@@ -66,7 +66,6 @@ public class ReduceTask extends Task {
       inputOfRedTask.add(ta.getTaskID().toString());
     }
     jobJson.put("taskID", taskID.toString());
-    jobJson.put("logPath", taskLogPath.toString());
     jobJson.put("operatorTree", ops);
     jobJson.put("inputMapTasks", inputOfRedTask);
     jobJson.put("attemptTask", taskInfo.getAllTaskAttempts().keySet().toString());

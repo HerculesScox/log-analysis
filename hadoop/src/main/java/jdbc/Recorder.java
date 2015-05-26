@@ -76,12 +76,13 @@ public class Recorder {
   public static boolean queryInfoRecord( Query query ){
     LinkedList<String> params = new LinkedList<String>();
     String sql = "INSERT INTO `log_analysis`.`table_query` " +
-            "(`queryString`, `workflowID`, `jobDependency`, `username`) " +
-            "VALUES ( ?, ?, ?, ?)";
+            "(`queryString`, `workflowID`, `jobDependency`, `username`, `launchtime`) " +
+            "VALUES ( ?, ?, ?, ?,?)";
     params.add(StringEscapeUtils.escapeSql(query.getQueryString()));
     params.add(query.getWorkflowID());
     params.add(query.getWorkflowAdjacencies());
     params.add(query.getJobs().get(0).getJobInfo().getUsername());
+    params.add(String.valueOf(query.getLaunchTime()));
     int res = DBHander.execQuery(sql, params);
     if ( res > 0 ){
       System.out.println("> query record successfully");

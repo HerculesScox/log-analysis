@@ -13,6 +13,7 @@ public class Query {
   private List<Job> jobList;
   private String remark;
   private int jobAmount;
+  private long launchtime;
 
 
   public Query(String queryStirng, String username, String jobDependency,
@@ -34,16 +35,25 @@ public class Query {
   }
 
   public Query(String queryStirng, String workflowID, String jobDependency,
-           String username, int jobAmount) {
+           String username, int jobAmount, long launchtime) {
     this.queryStirng = queryStirng;
     this.workflowID = workflowID;
     this.jobDependency = jobDependency;
     this.username = username;
     this.jobAmount = jobAmount;
+    this.launchtime = launchtime;
   }
 
   public Query() {
 
+  }
+
+  public long getLaunchtime() {
+    return launchtime;
+  }
+
+  public void setLaunchtime(long launchtime) {
+    this.launchtime = launchtime;
   }
 
   public String getQueryStirng() {

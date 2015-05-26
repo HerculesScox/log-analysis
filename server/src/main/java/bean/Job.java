@@ -13,6 +13,7 @@ public class Job {
   private String detailInfo;
   private String remark;
   private List<Task> taskList;
+  private int taskNum;
 
   public Job(String jobid, String workflowID, String workflowNode,
         String logPath, String detailInfo, List<Task> taskList) {
@@ -25,13 +26,25 @@ public class Job {
   }
 
   public Job(String jobid, String workflowID, String workflowNode,
-         String logPath, String detailInfo, String remark) {
+             String logPath, String detailInfo){
+    this(jobid, workflowID, workflowNode, logPath, detailInfo, 0, "" );
+  }
+
+  public Job(String jobid, String workflowID, String workflowNode,
+             String logPath, String detailInfo, int taskNum) {
+    this(jobid, workflowID, workflowNode, logPath, detailInfo, taskNum, "" );
+  }
+
+
+  public Job(String jobid, String workflowID, String workflowNode,
+         String logPath, String detailInfo, int taskNum, String remark) {
     this.jobid = jobid;
     this.workflowID = workflowID;
     this.workflowNode = workflowNode;
     this.logPath = logPath;
     this.detailInfo = detailInfo;
     this.remark = remark;
+    this.taskNum = taskNum;
   }
 
   public Job() {
@@ -91,5 +104,13 @@ public class Job {
 
   public void setTaskList(List<Task> taskList) {
     this.taskList = taskList;
+  }
+
+  public int getTaskNum() {
+    return taskNum;
+  }
+
+  public void setTaskNum(int taskNum) {
+    this.taskNum = taskNum;
   }
 }

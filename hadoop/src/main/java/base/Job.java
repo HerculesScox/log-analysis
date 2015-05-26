@@ -74,10 +74,28 @@ public class Job implements Serializable{
     jobJson.put("jobID", jobInfo.getJobid().toString());
     jobJson.put("workflowID", jobInfo.getWorkflowId());
     jobJson.put("workflowNodeName", jobInfo.getWorkflowNodeName());
-    jobJson.put("logPath", confFile);
     jobJson.put("submitTime", jobInfo.getSubmitTime());
     jobJson.put("launchTime", jobInfo.getLaunchTime());
-
+    for(Task task : tasks.values()){
+      boolean mapDone = false, redDone = false;
+      if ( !mapDone && task instanceof MapTask){
+        List<String> mapOps = new ArrayList<String>();
+        for(String node : task.getOperators().keySet()){
+          mapOps.add(node);
+        }
+        jobJson.put("mapOps", mapOps);
+        mapDone = true;
+      }
+      if ( !redDone && task instanceof ReduceTask){
+        List<String> reduceOps = new ArrayList<String>();
+        for(String node : task.getOperators().keySet()){
+          reduceOps.add(node);
+        }
+        jobJson.put("reduceOps", reduceOps);
+        redDone = true;
+      }
+      if( redDone && mapDone) break;
+    }
     LinkedHashMap counterGroup = new LinkedHashMap();
     LinkedHashMap mapcounter = new LinkedHashMap();
     LinkedHashMap redcounter = new LinkedHashMap();

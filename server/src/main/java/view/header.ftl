@@ -9,10 +9,11 @@
     <title>Log Analysis Tool</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+	  <link rel="stylesheet" href="/css/reveal.css">
 
     <!-- Custom styles for this template -->
-    <link href="css/dashboard.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
 
 </head>
 <body>
@@ -41,7 +42,7 @@
 <div class="row">
     <div class="col-sm-3 col-md-2 sidebar">
         <ul class="nav nav-sidebar">
-            <li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
+            <li class="active"><a href="/">Overview <span class="sr-only">(current)</span></a></li>
             <li><a href="#">Analytics</a></li>
             <li><a href="#">Export</a></li>
         </ul>

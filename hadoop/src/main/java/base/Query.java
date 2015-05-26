@@ -17,7 +17,8 @@ public class Query  implements Serializable {
   private String queryString;
   private List<Job> jobs;
   private String workflowAdjacencies;
-
+  // the First job launch time
+  private long launchTime;
   private boolean done = false;
 
   //operator tree
@@ -27,10 +28,17 @@ public class Query  implements Serializable {
     this.jobs = new ArrayList<Job>();
     this.queryString = queryString;
     this.workflowID = workflowID;
+    this.launchTime = 0L;
     parse( workflowAdjacencies );
   }
 
   public void addJob( Job job){
+    long jobLaunch =  job.getJobInfo().getLaunchTime();
+    if(jobs.size() > 0 && this.launchTime > jobLaunch ) {
+      this.launchTime = jobLaunch;
+    }else{
+      this.launchTime = jobLaunch;
+    }
     this.jobs.add(job);
   }
 
@@ -69,5 +77,13 @@ public class Query  implements Serializable {
 
   public String getWorkflowID() {
     return workflowID;
+  }
+
+  public long getLaunchTime() {
+    return launchTime;
+  }
+
+  public void setLaunchTime(long launchTime) {
+    this.launchTime = launchTime;
   }
 }

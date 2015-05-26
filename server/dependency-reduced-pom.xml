@@ -12,7 +12,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
+        <version>2.3</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -23,6 +23,9 @@
               <transformers>
                 <transformer>
                   <mainClass>CliDriver</mainClass>
+                </transformer>
+                <transformer>
+                  <resource>public/*</resource>
                 </transformer>
               </transformers>
             </configuration>
@@ -38,6 +41,7 @@
                 <exclude>META_INF/*.DSA</exclude>
                 <exclude>META_INF/*.RSA</exclude>
                 <exclude>org.eclipse.jetty.orbit:javax.servlet:jar</exclude>
+                <exclude>org.eclipse.jetty:jetty-servlet:jar</exclude>
               </excludes>
             </filter>
           </filters>
@@ -54,7 +58,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>lib/</outputDirectory>
+              <outputDirectory>${basedir}/lib/</outputDirectory>
               <overWriteIfNewer>false</overWriteIfNewer>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>

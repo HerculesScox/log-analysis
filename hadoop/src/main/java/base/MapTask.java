@@ -57,7 +57,6 @@ public class MapTask extends Task {
     jobJson.put("taskID", taskID.toString());
     jobJson.put("splitFiles", splitFiles.toString());
     jobJson.put("inputFormat", inputFormat.toString());
-    jobJson.put("logPath", taskLogPath.toString());
     jobJson.put("operatorTree", ops);
     jobJson.put("attemptTask", taskInfo.getAllTaskAttempts().keySet().toString());
     LinkedHashMap mapcounter = new LinkedHashMap();
@@ -66,7 +65,6 @@ public class MapTask extends Task {
 
     StringWriter out = new StringWriter();
     jobJson.writeJSONString(out);
-
     return jobJson.toJSONString();
   }
 }
