@@ -7,7 +7,7 @@ When HQL be executed on hadoop, some log files are generated in local disk(defau
 This tool could establish a relation between query, job and task when anaylzing log information, persistence data into database. Another a part is visualization.
 
 Requirements：
-	jdk 1.8
-	hadoop 2.0
-	hive 0.12+
+	jdk 1.8 \n
+	hadoop 2.0 \n
+	hive 0.12+ \n
 	
