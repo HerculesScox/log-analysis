@@ -10,6 +10,7 @@ import util.FactorStatistics;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -76,26 +77,61 @@ public class Job implements Serializable{
     jobJson.put("workflowNodeName", jobInfo.getWorkflowNodeName());
     jobJson.put("submitTime", jobInfo.getSubmitTime());
     jobJson.put("launchTime", jobInfo.getLaunchTime());
+
+    List<String> mapInputs = new ArrayList<String>();
+    List<String> mapInputFormat = new ArrayList<String>();
+    List<String> redInputs = new ArrayList<String>();
+    LinkedHashMap<String, BigDecimal> mapOps = new LinkedHashMap<String, BigDecimal>();
+    LinkedHashMap<String, BigDecimal> reduceOps = new LinkedHashMap<String, BigDecimal>();
+
     for(Task task : tasks.values()){
-      boolean mapDone = false, redDone = false;
-      if ( !mapDone && task instanceof MapTask){
-        List<String> mapOps = new ArrayList<String>();
+      if (task instanceof MapTask){
         for(String node : task.getOperators().keySet()){
-          mapOps.add(node);
+          BigDecimal rows = BigDecimal.valueOf(task.getOperators().get(node).getRows());
+          if (mapOps.containsKey(node)) {
+            mapOps.put(node, mapOps.get(node).add(rows));
+          }else{
+            mapOps.put(node,rows);
+          }
         }
-        jobJson.put("mapOps", mapOps);
-        mapDone = true;
+
+        MapTask mt = (MapTask)task;
+        if (!mapInputFormat.contains(mt.getInputFormat())){
+          mapInputFormat.add(mt.getInputFormat());
+        }
+        for(String inputFile : mt.getSplitFiles()){
+          String fileName = inputFile.split(":")[0];
+          if(!mapInputs.contains(fileName)){
+             mapInputs.add(fileName);
+          }
+        }
       }
-      if ( !redDone && task instanceof ReduceTask){
-        List<String> reduceOps = new ArrayList<String>();
+
+      if (task instanceof ReduceTask){
+
         for(String node : task.getOperators().keySet()){
-          reduceOps.add(node);
+          BigDecimal rows = BigDecimal.valueOf(task.getOperators().get(node).getRows());
+          if (reduceOps.containsKey(node)) {
+            reduceOps.put(node, reduceOps.get(node).add(rows));
+          }else{
+            reduceOps.put(node,rows);
+          }
         }
-        jobJson.put("reduceOps", reduceOps);
-        redDone = true;
+
+        ReduceTask mt = (ReduceTask)task;
+        for (TaskAttemptID at : mt.getAttemptTaskID()) {
+          redInputs.add(at.getTaskID().toString());
+        }
+
       }
-      if( redDone && mapDone) break;
     }
+
+    jobJson.put("mapInputs", mapInputs);
+    jobJson.put("mapInputFormat", mapInputFormat);
+    jobJson.put("redInputs", redInputs);
+    jobJson.put("reduceOps", reduceOps);
+    jobJson.put("mapOps", mapOps);
+
     LinkedHashMap counterGroup = new LinkedHashMap();
     LinkedHashMap mapcounter = new LinkedHashMap();
     LinkedHashMap redcounter = new LinkedHashMap();
@@ -113,6 +149,7 @@ public class Job implements Serializable{
     StringWriter out = new StringWriter();
     jobJson.writeJSONString(out);
 
+    System.out.println(jobJson.toJSONString());
     return jobJson.toJSONString();
   }
 }

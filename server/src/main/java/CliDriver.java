@@ -2,7 +2,7 @@
  * Created by zhangyun on 5/15/15.
  */
 
-import java.io.StringWriter;
+
 import java.util.*;
 
 import bean.Job;
@@ -14,11 +14,9 @@ import com.google.gson.reflect.TypeToken;
 import dao.JobDAO;
 import dao.QueryDAO;
 import dao.TaskDAO;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.json.simple.*;
-import org.json.simple.JSONArray;
 import spark.ModelAndView;
 import spark.Spark;
+import util.Graphviz;
 
 
 import static spark.Spark.get;
@@ -33,7 +31,7 @@ public class CliDriver {
       List<Map<String, Object>> allInfo = new ArrayList<>();
       int i = 1;
       for (Query l : list ){
-        Map<String, Object> query = new HashMap<>();
+        Map<String, Object> query = new HashMap<String, Object>();
         query.put("number", i++);
         Map<String, String> stageToJobID = dao.getWorkflowNodeByID(l.getWorkflowID());
         query.put("workflowID", l.getWorkflowID());
@@ -41,12 +39,16 @@ public class CliDriver {
         query.put("launchTime", l.getLaunchtime());
         query.put("queryString" , l.getQueryStirng());
         query.put("jobDependency", l.getJobDependency());
+        JsonElement jelement = new JsonParser().parse(l.getJobDependency());
+        Gson gson = new Gson();
+        Map<String, String> json = gson.fromJson(jelement, new TypeToken<Map>(){}.getType());
         query.put("stageToJobID", stageToJobID);
+        query.put("svg", Graphviz.conv(json, stageToJobID.keySet()));
         query.put("jobAmount", l.getJobAmount());
         allInfo.add(query);
       }
       Map<String, Object> attributes = new HashMap<>();
-      attributes.put("subTitle", "Query List");
+      attributes.put("subTitle", "Querys List");
       attributes.put("allInfo", allInfo);
       return new ModelAndView(attributes, "index.ftl");
     }, new FreeMarkerEngine());
@@ -59,7 +61,10 @@ public class CliDriver {
       attributes.put("subTitle", "JOB Detail Information");
       attributes.put("jobid", job.getJobid());
       attributes.put("stage", job.getWorkflowNode());
-      attributes.put("detail", job.getDetailInfo());
+      JsonElement jelement = new JsonParser().parse(job.getDetailInfo());
+      Gson gson = new Gson();
+      Map<String, Object> json = gson.fromJson(jelement, new TypeToken<Map>(){}.getType());
+      attributes.put("json",json );
       return new ModelAndView(attributes, "job_detail.ftl");
     }, new FreeMarkerEngine());
 
@@ -69,7 +74,7 @@ public class CliDriver {
       List<Job> jobs = dao.getByWfID(workflowID);
       List<Map<String, Object>> allInfo = new ArrayList<>();
       Map<String, Object> attributes = new HashMap<>();
-      attributes.put("subTitle", "Job List");
+      attributes.put("subTitle", "Jobs List");
       int i = 1;
       for(Job job : jobs) {
         Map<String, Object> content = new HashMap<>();
@@ -80,7 +85,6 @@ public class CliDriver {
         JsonElement jelement = new JsonParser().parse(job.getDetailInfo());
         Long launchtime = jelement.getAsJsonObject().get("launchTime").getAsLong();
         content.put("launchtime", launchtime);
-        content.put("detail", job.getDetailInfo());
         allInfo.add(content);
       }
       attributes.put("allInfo", allInfo);
@@ -93,7 +97,7 @@ public class CliDriver {
       List<Task> tasks = dao.getByJobid(jobid);
       List<Map<String, Object>> allInfo = new ArrayList<>();
       Map<String, Object> attributes = new HashMap<>();
-      attributes.put("subTitle", "Task List");
+      attributes.put("subTitle", "Tasks List");
       int i = 1;
       for(Task task : tasks) {
         Map<String, Object> content = new HashMap<>();
@@ -107,6 +111,36 @@ public class CliDriver {
       return new ModelAndView(attributes, "task_all.ftl");
     }, new FreeMarkerEngine());
 
+    get("/job/*/ops/*", (request, response) -> {
+      String jobid = request.splat()[0];
+      String type = request.splat()[1];
+      TaskDAO dao = new TaskDAO();
+      List<Task> tasks = dao.getByJobid(jobid);
+      List<Map<String, Object>> allInfo = new ArrayList<>();
+      Map<String, Object> attributes = new HashMap<>();
+      attributes.put("subTitle", type + " Operator Processing Information");
+      int i = 1;
+      for(Task task : tasks) {
+        Map<String, Object> content = new HashMap<>();
+        if(task.getTaskType().equals(type)) {
+          content.put("number", i++);
+          content.put("taskid", task.getTaskid());
+          JsonElement jelement = new JsonParser().parse(task.getDetailInfo());
+          Gson gson = new Gson();
+          Map json = gson.fromJson(jelement, new TypeToken<Map>(){}.getType());
+          LinkedTreeMap treeMapOps = ((LinkedTreeMap)json.get("operatorTree"));
+          LinkedHashMap ops = new LinkedHashMap();
+          for(Object op : treeMapOps.keySet()){
+            ops.put(op , treeMapOps.get(op));
+          }
+          content.put("operatorTree", ops);
+          allInfo.add(content);
+        }
+      }
+      attributes.put("allInfo", allInfo);
+      return new ModelAndView(attributes, "ops_outline.ftl");
+    }, new FreeMarkerEngine());
+
     get("/task/:taskid", (request, response) -> {
       String taskid = request.params(":taskid");
       TaskDAO dao = new TaskDAO();
@@ -115,12 +149,12 @@ public class CliDriver {
       attributes.put("subTitle", "Task Detail Information");
       attributes.put("taskid", task.getTaskid());
       attributes.put("type", task.getTaskType());
-      System.out.println(task.getDetailInfo());
+
       JsonElement jelement = new JsonParser().parse(task.getDetailInfo());
       Gson gson = new Gson();
-      Map<String, Object> json = gson.fromJson(jelement, new TypeToken<Map>(){}.getType());
-      attributes.put("attemptTask",
-        Arrays.asList(json.get("attemptTask").toString().split(",")));
+
+      LinkedHashMap<String, Object> json = gson.fromJson(jelement, new TypeToken<LinkedHashMap>(){}.getType());
+      attributes.put("attemptTasks",json.get("attemptTasks"));
       if ( json.containsKey("inputFormat")) {
         attributes.put("inputFormat", json.get("inputFormat"));
       }
@@ -132,7 +166,19 @@ public class CliDriver {
         attributes.put("inputMapTasks",
                 Arrays.asList(json.get("inputMapTasks").toString().split(",")));
       }
-      attributes.put("operatorTree", json.get("operatorTree"));
+      LinkedTreeMap  treeMapOps = ((LinkedTreeMap)json.get("operatorTree"));
+      LinkedHashMap ops = new LinkedHashMap();
+      for(Object op : treeMapOps.keySet()){
+        ops.put(op , treeMapOps.get(op));
+      }
+      attributes.put("operatorTree", ops);
+
+      attributes.put("startTime", json.get("startTime"));
+      attributes.put("error", json.get("error"));
+      attributes.put("status", json.get("status"));
+      attributes.put("finishTime", json.get("finishTime"));
+      attributes.put("splitLocation", json.get("splitLocation"));
+
       attributes.put("Counter", json.get("Counter"));
       return new ModelAndView(attributes, "task_detail.ftl");
     }, new FreeMarkerEngine());

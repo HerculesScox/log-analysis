@@ -8,10 +8,7 @@ import util.FactorStatistics;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by zhangyun on 4/29/15.
@@ -45,26 +42,26 @@ public class MapTask extends Task {
 
   public String toJSON() throws IOException {
     JSONObject jobJson = new JSONObject();
-    LinkedHashMap<String,String> ops = new LinkedHashMap<String,String>();
-    for(String k : operators.keySet()){
-      if( operators.get(k).getRemark() != null){
-        ops.put( k , operators.get(k).toString() +
-                "/" + operators.get(k).getRemark());
-        continue;
-      }
-      ops.put( k , operators.get(k).toString());
-    }
-    jobJson.put("taskID", taskID.toString());
+
+    setJSONObject(jobJson);
     jobJson.put("splitFiles", splitFiles.toString());
     jobJson.put("inputFormat", inputFormat.toString());
-    jobJson.put("operatorTree", ops);
-    jobJson.put("attemptTask", taskInfo.getAllTaskAttempts().keySet().toString());
+
     LinkedHashMap mapcounter = new LinkedHashMap();
     FactorStatistics.mapCounter(mapcounter, taskInfo.getCounters());
     jobJson.put("Counter",mapcounter);
 
     StringWriter out = new StringWriter();
     jobJson.writeJSONString(out);
+
     return jobJson.toJSONString();
+  }
+
+  public List<String> getSplitFiles() {
+    return splitFiles;
+  }
+
+  public String getInputFormat() {
+    return inputFormat;
   }
 }

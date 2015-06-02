@@ -109,3 +109,26 @@ body {
   text-align:center;
   vertical-align:middle;
 }
+
+.hide_list li{
+  display: none;
+}
+
+.show_more{
+  margin-left : 1px;
+  color: green;
+  cursor: pointer;
+  display:none;
+}
+
+.show_less{
+  margin-left : 1px;
+  color: red;
+  cursor: pointer;
+  display: none;
+}
+
+li .show_more, show_less:hover{
+  color: black;
+}
+

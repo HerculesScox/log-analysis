@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Created by zhangyun on 4/21/15.
@@ -52,34 +53,52 @@ public abstract class Task  implements Serializable {
 
   public void printAll(){
     System.out.println("TASK_ID: " + taskID);
-//    for (String g : taskInfo.getCounters().getGroupNames()){
-//      Iterator<org.apache.hadoop.mapreduce.Counter> c =
-//              taskInfo.getCounters().getGroup(g).iterator();
-//      while (c.hasNext()) {
-//        org.apache.hadoop.mapreduce.Counter n = c.next();
-//        System.out.println(g + ">>>>>>>>>> " + n.getName() + " => " + n.getValue());
-//      }
-//      System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
-//    }
-
     System.out.println(taskInfo.getTaskType());
     System.out.println(taskInfo.getAllTaskAttempts().get(taskInfo.getSuccessfulAttemptId()).getState());
 
-//    System.out.println("OPTREE: ");
-//    for (String k : operators.keySet()){
-//      System.out.println(k + " => " + operators.get(k).toString());
-//    }
-//    System.out.println("LOG_PATH: "+ taskLogPath);
   }
 
-  public String toJSON() throws IOException {
-    JSONObject jobJson = new JSONObject();
-    jobJson.put("taskID", taskID);
+  public String toJSON()throws IOException{
+   return "{\"taskID\": \""+ taskID +"\"}";
+  }
 
-    StringWriter out = new StringWriter();
-    jobJson.writeJSONString(out);
+  public void setJSONObject(JSONObject jobJson) throws IOException {
+    jobJson.put("taskID", taskID.toString());
 
-    return jobJson.toJSONString();
+    LinkedHashMap<String,String> ops = new LinkedHashMap<String,String>();
+    for(String k : operators.keySet()){
+      if( operators.get(k).getRemark() != null){
+        ops.put( k , operators.get(k).toString() +
+                " <" + operators.get(k).getRemark() + ">") ;
+        continue;
+      }
+      ops.put( k , operators.get(k).toString());
     }
+    jobJson.put("operatorTree", ops);
+
+    jobJson.put("startTime", taskInfo.getStartTime());
+    jobJson.put("finishTime", taskInfo.getFinishTime());
+    jobJson.put("splitLocation", taskInfo.getSplitLocations());
+    jobJson.put("error", taskInfo.getError());
+    jobJson.put("status", taskInfo.getTaskStatus());
+
+    Map<TaskAttemptID, JhistFileParser.TaskAttemptInfo> tas = taskInfo.getAllTaskAttempts();
+    LinkedHashMap attemptTasks = new LinkedHashMap();
+    for (TaskAttemptID at : tas.keySet()){
+      LinkedHashMap attemptTask = new LinkedHashMap();
+      attemptTask.put("startTime", tas.get(at).getStartTime());
+      attemptTask.put("finishTime", tas.get(at).getFinishTime());
+      attemptTask.put("error", tas.get(at).getError());
+      attemptTask.put("status", tas.get(at).getTaskStatus());
+      attemptTask.put("state", tas.get(at).getState());
+      attemptTask.put("type", tas.get(at).getTaskType().toString());
+      attemptTask.put("shuffleFinishTime", tas.get(at).getShuffleFinishTime());
+      attemptTask.put("sortFinishTime", tas.get(at).getSortFinishTime());
+      attemptTask.put("mapFinishTime", tas.get(at).getMapFinishTime());
+      attemptTask.put("containerId", tas.get(at).getContainerId().toString());
+      attemptTasks.put(at.toString(), attemptTask);
+    }
+    jobJson.put("attemptTasks", attemptTasks);
+  }
 
 }

@@ -42,7 +42,6 @@ public class LogAnalyzer extends Observable{
     Collection<Query> queries = pad.getQueries().values();
     for(Query q : queries){
       System.out.println("================================================");
-      System.out.println(">>QUERY "+ q.getQueryString());
       for(Job job : q.getJobs()){
         System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         String jobID = job.getJobInfo().getJobid().toString();
@@ -50,15 +49,14 @@ public class LogAnalyzer extends Observable{
           taskParser.parse(job, p);
           job.chopKilledTask();
           for(TaskID id : job.getTasks().keySet()){
-              Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
+            job.getTasks().get(id).getTaskInfo().printAll();
+  //          Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
+            System.out.println("------------------------------------ ");
           }
-          System.out.println("------------------------------------ ");
         }
-        Recorder.jobInfoRecord(job);
-        System.out.println("******* Total task numbers: "+ job.getJobInfo().getTasksMap().size());
-        System.out.println("*******  Actual task numbers: "+ job.getTasks().size());
+  //      Recorder.jobInfoRecord(job);
       }
-      Recorder.queryInfoRecord(q);
+ //     Recorder.queryInfoRecord(q);
     }
     DBHander.close();
   }

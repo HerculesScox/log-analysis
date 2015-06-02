@@ -1,4 +1,6 @@
 <#include "header.ftl">
+    <script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="/js/log-analysis.js"></script>
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         <h2 class="sub-header">${subTitle}</h2>
         <div class="table-responsive">
@@ -12,13 +14,51 @@
                   <td>${type}</td>
                 </tr>
                 <tr>
+                  <td><strong>Start Time</strong></td>
+                  <td>${startTime?number_to_datetime}</td>
+                </tr>
+                <tr>
+                  <td><strong>Finish Time</strong></td>
+                  <td>${finishTime?number_to_datetime}</td>
+                </tr>
+                <tr>
+                  <td><strong>Status</strong></td>
+                  <td>${status}</td>
+                </tr>
+                <tr>
+                  <td><strong>Split Location</strong></td>
+                  <td>${splitLocation}</td>
+                </tr>
+                <tr>
+                  <td><strong>Error</strong></td>
+                  <td>${error}</td>
+                </tr>
+                <tr>
                   <td ><strong>Attempt Task</strong></td>
                   <td>
-                    <ol style="list-style:disc;padding-left:20px;">
-                      <#list attemptTask as at>
-                        <li>${at?replace("[","")?replace("]","")}</li>
+                    <table  class="table table-bordered">
+                      <#list attemptTasks?keys as ats>
+                        <tr>
+                          <strong>[${ats_index}]&nbsp;&nbsp;${ats}</strong>
+                          <#assign at = attemptTasks[ats]>
+                          <ol style="list-style:disc;padding-left:50px;">
+                            <#list at?keys as content>
+                              <li>${content}:
+                                <#if at[content]??>
+                                  <#if at[content]?is_number&&(at[content]>0)>
+                                    ${at[content]?number_to_datetime}
+                                  <#else>
+                                     ${at[content]}
+                                  </#if>
+                                <#else>
+                                  NO
+                                </#if>
+                              </li>
+                            </#list>
+                          </ol>
+                        </tr>
                       </#list>
-                    </ol>
+                    </table>
                    </td>
                 </tr>
                 <#if type == "MAP">
@@ -42,11 +82,13 @@
                    <tr>
                      <td><strong>Input MapTasks</strong></td>
                      <td>
-                      <ul style="list-style:disc;padding-left:20px;">
+                      <ul class="hide_list" style="list-style:disc;padding-left:20px;">
                        <#list inputMapTasks as at>
                          <#assign mtask = at?replace("[","")?replace("]","")>
                          <li><a href="/task/${mtask?replace(" ","")}"> ${mtask}</a></li>
                        </#list>
+                        <div class="show_more"> more...</div>
+                        <div class="show_less"> less...</div>
                       </ul>
                      </td>
                    </tr>
@@ -54,7 +96,7 @@
                 <tr>
                   <td style="vertical-align:middle"><strong>Operator Tree</strong></td>
                   <td>
-                    <table  class="table table-bordered">
+                    <table class="table" style="margin-bottom:-2px;border-bottom:1px solid #ddd;">
                       <#list operatorTree?keys as at>
                         <tr>
                           <#assign op = operatorTree[at]?replace("<", "")?replace(">", "")?split(" ")>

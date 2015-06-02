@@ -416,11 +416,11 @@ public class JhistFileParser implements HistoryEventHandler {
       if (counters != null) {
         System.out.println("COUNTERS:" + counters.toString());
       }
-
+      System.out.println("------------------------------------");
       for (TaskAttemptID id: attemptsMap.keySet()) {
         attemptsMap.get(id).printAll();
       }
-
+      System.out.println("------------------------------------");
     }
 
     /** @return the Task ID */

@@ -52,21 +52,13 @@ public class ReduceTask extends Task {
 
   public String toJSON() throws IOException {
     JSONObject jobJson = new JSONObject();
-    LinkedHashMap<String,String> ops = new LinkedHashMap<String,String>();
-    for(String k : operators.keySet()){
-      if( operators.get(k).getRemark() != null){
-        ops.put( k , operators.get(k).toString() +
-                " <" + operators.get(k).getRemark() + ">") ;
-        continue;
-      }
-      ops.put( k , operators.get(k).toString());
-    }
+
     LinkedList<String> inputOfRedTask = new LinkedList<String>();
     for(TaskAttemptID ta : attemptTaskIDs){
       inputOfRedTask.add(ta.getTaskID().toString());
     }
-    jobJson.put("taskID", taskID.toString());
-    jobJson.put("operatorTree", ops);
+    setJSONObject(jobJson);
+
     jobJson.put("inputMapTasks", inputOfRedTask);
     jobJson.put("attemptTask", taskInfo.getAllTaskAttempts().keySet().toString());
 

@@ -35,13 +35,18 @@
           <createDependencyReducedPom>true</createDependencyReducedPom>
           <filters>
             <filter>
+              <artifact>server</artifact>
+              <includes>
+                <include>**/*.ftl</include>
+                <include>**/*.class</include>
+              </includes>
+            </filter>
+            <filter>
               <artifact>*:*</artifact>
               <excludes>
-                <exclude>META_INF/*.SF</exclude>
-                <exclude>META_INF/*.DSA</exclude>
-                <exclude>META_INF/*.RSA</exclude>
-                <exclude>org.eclipse.jetty.orbit:javax.servlet:jar</exclude>
-                <exclude>org.eclipse.jetty:jetty-servlet:jar</exclude>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
               </excludes>
             </filter>
           </filters>

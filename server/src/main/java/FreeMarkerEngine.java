@@ -4,6 +4,8 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Paths;
+
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -69,8 +71,14 @@ public class FreeMarkerEngine extends TemplateEngine {
     Configuration configuration = new Configuration();
    // configuration.setClassForTemplateLoading(FreeMarkerEngine.class, "/");
    try {
-     configuration.setDirectoryForTemplateLoading(new File(
-             System.getProperty("user.dir") + "/server/src/main/java/view"));
+     String basePath = Paths.get("").toAbsolutePath().toString();
+     String path = basePath;
+     if( basePath.contains("server")){
+       path += "/src/main/java/view";
+     }else{
+       path += "/server/src/main/java/view";
+     }
+     configuration.setDirectoryForTemplateLoading(new File(path));
    }catch ( IOException e){
       e.printStackTrace();
    }

@@ -192,7 +192,13 @@ public class TaskLogParser {
           for(String opName : operators.keySet()){
              execTime = opToProcTime.get(opName);
              if (execTime != null) {
-               operators.get(opName).setProcTime(execTime.getValue() - execTime.getKey());
+               long res ;
+               if( execTime.getValue() == 0L ){
+                 res = -1L;
+               }else{
+                res = execTime.getValue() - execTime.getKey();
+               }
+               operators.get(opName).setProcTime(res);
              }else {
                operators.get(opName).setProcTime(0);
              }

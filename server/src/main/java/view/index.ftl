@@ -1,8 +1,6 @@
 <#include "header.ftl">
-    <script type="text/javascript" src="/js/raphael-min.js"></script>
-    <script type="text/javascript" src="/js/dracula_graffle.js"></script>
     <script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
-    <script type="text/javascript" src="/js/dracula_graph.js"></script>
+    <script type="text/javascript" src="/js/viz.js"></script>
     <script type="text/javascript" src="/js/jquery.reveal.js"></script>
     <script type="text/javascript" src="/js/log-analysis.js"></script>
 
@@ -30,7 +28,7 @@
                           ${info['queryString']}
                         </td>
                         <td>
-                          <p class="graph_button" >
+                          <p class="graph_button" onClick="genGraph(${info['number']})">
                             <a href="#"  style="color:green;" data-reveal-id="myModal" data-animation="none" onClick="genGraph(stagesMaps[${info['number']}], markeds[${info['number']}]);">
                           >> graph describe:</a></p>
                          <#assign json = info['jobDependency']?eval>
@@ -98,3 +96,32 @@
         </nav>
     </div>
 <#include "footer.ftl">
+<#list allInfo as info>
+  <script type="text/vnd.grpahviz" id="${info['number']}">
+    ${info['svg']}
+  </script>
+</#list>
+
+<script>
+function inspect(s) {
+    return "<pre>" + s.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;") + "</pre>"
+  }
+
+function src(id) {
+  return document.getElementById(id).innerHTML;
+}
+
+function viz(id, format, engine) {
+  var result;
+  try {
+    result = Viz(src(id), format, engine);
+       return result;
+  } catch(e) {
+    return inspect(e.toString());
+  }
+}
+
+function genGraph(id){
+  document.getElementById('canvas').innerHTML = viz(id,"svg");
+}
+</script>
