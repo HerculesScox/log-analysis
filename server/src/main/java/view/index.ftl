@@ -1,18 +1,20 @@
 <#include "header.ftl">
+    <link href="/css/highlight.css" rel="stylesheet">
     <script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
     <script type="text/javascript" src="/js/viz.js"></script>
     <script type="text/javascript" src="/js/jquery.reveal.js"></script>
     <script type="text/javascript" src="/js/log-analysis.js"></script>
+    <script type="text/javascript" src="/js/highlight.pack.js"></script>
 
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         <h2 class="sub-header">${subTitle}</h2>
         <div class="table-responsive">
-            <table  class="table table-hover table-bordered">
+            <table  class="table table-hover ">
                 <thead>
                 <tr>
                     <th style="text-align:center;" width="5%">NO.</th>
-                    <th style="text-align:center;" width="7%">USERNAME</th>
-                    <th style="text-align:center;" width="45%">QUERY</th>
+                   <th style="text-align:center;" width="7%">USERNAME</th>
+                    <th style="text-align:center;" width="55%">QUERY</th>
                     <th style="text-align:center;" width="23%">JOB DEPENDENCY</th>
                     <th style="text-align:center;" >JOB AMOUNT</th>
                 </tr>
@@ -25,7 +27,7 @@
                         <td style="text-align:center;vertical-align:middle">${info['number']}</td>
                         <td style="text-align:center;vertical-align:middle">${info['username']}</td>
                         <td>
-                          ${info['queryString']}
+                          <pre><code class="SQL">${info['queryString']?replace("^\\s+", "", "r")}</code></pre>
                         </td>
                         <td>
                           <p class="graph_button" onClick="genGraph(${info['number']})">

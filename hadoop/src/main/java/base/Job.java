@@ -20,7 +20,7 @@ public class Job implements Serializable{
   private JhistFileParser.JobInfoQ  jobInfo;
   private Path JHPath;
   private Path confFile;
-  private HashMap<TaskID, Task> tasks;
+  private HashMap<String, Task> tasks;
   //All top op of all map tasks
   private HashSet<Node> topOps;
 
@@ -30,7 +30,7 @@ public class Job implements Serializable{
     this.JHPath = JHPath;
     this.confFile = confFile;
     this.topOps = new HashSet<Node>();
-    this.tasks = new HashMap<TaskID, Task>();
+    this.tasks = new HashMap<String, Task>();
   }
 
   public Path getConfFile() {
@@ -45,7 +45,7 @@ public class Job implements Serializable{
     return jobInfo;
   }
 
-  public HashMap<TaskID, Task> getTasks() {
+  public HashMap<String, Task> getTasks() {
     return tasks;
   }
 
@@ -54,9 +54,9 @@ public class Job implements Serializable{
   }
 
   public void chopKilledTask(){
-    Set<TaskID> succTask = tasks.keySet();
+    Set<String> succTask = tasks.keySet();
     HashSet<TaskAttemptID> redInputTask = new HashSet<TaskAttemptID>();
-    for(TaskID id : tasks.keySet()){
+    for(String id : tasks.keySet()){
       if (tasks.get(id) instanceof ReduceTask){
         ReduceTask rt = (ReduceTask) tasks.get(id);
         for(TaskAttemptID ta : rt.getAttemptTaskID()){
@@ -149,7 +149,6 @@ public class Job implements Serializable{
     StringWriter out = new StringWriter();
     jobJson.writeJSONString(out);
 
-    System.out.println(jobJson.toJSONString());
     return jobJson.toJSONString();
   }
 }

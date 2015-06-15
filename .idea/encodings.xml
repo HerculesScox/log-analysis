@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false" />
+  <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/Pair.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/Util.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/graph/BreadthFirstIterator.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/graph/CycleDetector.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/graph/DefaultDirectedGraph.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/graph/DefaultEdge.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/graph/DepthFirstIterator.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/graph/DirectedGraph.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/graph/Graphs.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/util/graph/TopologicalOrderIterator.java" charset="UTF-8" />
+  </component>
 </project>
 

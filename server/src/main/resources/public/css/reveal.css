@@ -56,7 +56,7 @@
     font-weight: bold;
   }
 
-  svg{
+  #canvas svg{
     width:400px;
     height:500px;
   }

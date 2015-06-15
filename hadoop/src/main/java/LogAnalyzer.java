@@ -46,17 +46,18 @@ public class LogAnalyzer extends Observable{
         System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         String jobID = job.getJobInfo().getJobid().toString();
         for(Path p : jobIDToTaskPath.get(jobID)){
-          taskParser.parse(job, p);
           job.chopKilledTask();
-          for(TaskID id : job.getTasks().keySet()){
-            job.getTasks().get(id).getTaskInfo().printAll();
-  //          Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
+          HashSet<String> taskGroup =taskParser.parse(job, p);
+          System.out.println( "path > " + p);
+          for(String id : taskGroup){
+            System.out.println(id);
+            Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
             System.out.println("------------------------------------ ");
           }
         }
-  //      Recorder.jobInfoRecord(job);
+        Recorder.jobInfoRecord(job);
       }
- //     Recorder.queryInfoRecord(q);
+      Recorder.queryInfoRecord(q);
     }
     DBHander.close();
   }

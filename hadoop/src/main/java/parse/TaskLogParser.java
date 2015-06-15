@@ -71,7 +71,8 @@ public class TaskLogParser {
     return idToPaths;
   }
 
-  public void parse(Job job ,Path taskLog) throws  IOException,ParseException {
+  public HashSet<String> parse(Job job ,Path taskLog) throws  IOException,ParseException {
+    HashSet<String> taskGroup = new HashSet<String>();
     org.apache.hadoop.fs.FileSystem fs = taskLog.getFileSystem(conf);
     FSDataInputStream in = fs.open(taskLog);
     BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -205,7 +206,8 @@ public class TaskLogParser {
           }
           MapTask mapTask = new MapTask(taskInfo, taskLog, operators,
                   mapSplitFiles, mapInputFormat);
-          job.getTasks().put(TaskID.forName(taskID), mapTask);
+          job.getTasks().put(taskID, mapTask);
+          taskGroup.add(taskID);
           LOG.info("Create A Map Task " + taskID);
           //container and status value will be reset
           operators.clear();
@@ -285,8 +287,9 @@ public class TaskLogParser {
 
           ReduceTask reduceTask= new ReduceTask(taskInfo, taskLog, operators, attemptTaskID);
           LOG.info("Create A Reduce Task " + taskID);
-          job.getTasks().put(TaskID.forName(taskID),reduceTask);
-          //container and status value will be reset
+          job.getTasks().put(taskID,reduceTask);
+          taskGroup.add(taskID);
+       // container and status value will be reset
           operators.clear();
           attemptTaskID.clear();
           opToProcTime.clear();
@@ -295,5 +298,7 @@ public class TaskLogParser {
         }
       }
     }
+
+    return taskGroup;
   }
 }

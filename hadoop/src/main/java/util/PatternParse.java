@@ -47,7 +47,7 @@ public class PatternParse {
           "hive\\.ql\\.exec\\.\\w+: \\d+ finished\\. closing.*$");
   private static Pattern opProcRows = Pattern.compile("org\\.apache\\.hadoop" +
           "\\.hive\\.ql\\.exec\\.(\\w+): (\\d+) forwarded (\\d+) rows$");
-  private static Pattern opForwarding = Pattern.compile(	"(^.*) INFO \\[main\\] org" +
+  private static Pattern opForwarding = Pattern.compile(	"(^.*) INFO \\[.*\\] org" +
           "\\.apache\\.hadoop\\.hive\\.ql\\.exec\\.(\\w+): \\d+ forwarding \\d+ rows");
 
 

@@ -14,7 +14,8 @@
 
     <!-- Custom styles for this template -->
     <link href="/css/dashboard.css" rel="stylesheet">
-
+    <link href="/css/chart.css" rel="stylesheet">
+    <script src="/js/jquery.min.js"></script>
 </head>
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top">
