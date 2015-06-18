@@ -20,8 +20,8 @@ public class MapTask extends Task {
 
   public MapTask( JhistFileParser.TaskInfo taskInfo, Path taskLogPath,
                  LinkedHashMap<String, Node> operators ,List<String> splitFiles,
-                 String inputFormat) {
-    super(taskLogPath, taskInfo, operators);
+                 String inputFormat, long startProcTime, long doneProcTime) {
+    super(taskLogPath, taskInfo, operators, startProcTime, doneProcTime);
     this.splitFiles = new ArrayList<String>();
     this.splitFiles.addAll(splitFiles);
     this.inputFormat = inputFormat;

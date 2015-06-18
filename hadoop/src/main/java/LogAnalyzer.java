@@ -48,7 +48,6 @@ public class LogAnalyzer extends Observable{
         for(Path p : jobIDToTaskPath.get(jobID)){
           job.chopKilledTask();
           HashSet<String> taskGroup =taskParser.parse(job, p);
-          System.out.println( "path > " + p);
           for(String id : taskGroup){
             System.out.println(id);
             Recorder.taskInfoRecord(job.getTasks().get(id),jobID );

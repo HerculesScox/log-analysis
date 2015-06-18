@@ -20,8 +20,9 @@ public class ReduceTask extends Task {
   private HashSet<TaskAttemptID> attemptTaskIDs;
 
   public ReduceTask(JhistFileParser.TaskInfo taskInfo,Path taskLogPath,
-                    LinkedHashMap<String, Node> operators, HashSet<TaskAttemptID> attemptTaskID){
-    super(taskLogPath, taskInfo, operators);
+                    LinkedHashMap<String, Node> operators, HashSet<TaskAttemptID> attemptTaskID,
+                    long startProcTime, long doneProcTime){
+    super(taskLogPath, taskInfo, operators, startProcTime, doneProcTime);
     this.attemptTaskIDs = new HashSet<TaskAttemptID>();
     getAttemptTaskID().addAll(attemptTaskID);
   }

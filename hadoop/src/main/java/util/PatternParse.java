@@ -15,7 +15,7 @@ public class PatternParse {
   private static Pattern jobPattern = Pattern.compile("job_\\d+_\\d+");
   private static Pattern jobID = Pattern.compile("_\\d+_\\d+");
 
-  private static Pattern taskID = Pattern.compile("org\\.apache\\.hadoop" +
+  private static Pattern taskID = Pattern.compile("(^.*) INFO \\[.*\\] org\\.apache\\.hadoop" +
           "\\.mapred\\.Task: Task:attempt_(\\d+_\\d+_[m|r]_\\d+)_\\d+ is done\\.");
 
   /** reduce task log information */
@@ -42,7 +42,10 @@ public class PatternParse {
                   "|" +
                   "(\\s*<\\\\w+>\\s*$)"
           );
-
+  private static Pattern initOpTime = Pattern.compile(
+          "(^.*) " +
+          "INFO \\[.*\\] org\\.apache\\.hadoop\\.hive\\.ql\\.exec\\.\\w+: " +
+          "Initializing Self \\d+ \\w+");
   private static Pattern opProcFinish = Pattern.compile("org\\.apache\\.hadoop\\." +
           "hive\\.ql\\.exec\\.\\w+: \\d+ finished\\. closing.*$");
   private static Pattern opProcRows = Pattern.compile("org\\.apache\\.hadoop" +
@@ -69,11 +72,11 @@ public class PatternParse {
     return null;
   }
 
-  public static String taskID( String str ){
+  public static Matcher taskID( String str ){
     Matcher match = taskID.matcher(str);
     if(match.find()){
       LOG.debug("Matched \\d+_\\d+_[m|r]_\\d+ pattern in path name of file");
-      return match.group(1);
+      return match;
     }
     return null;
   }
@@ -115,6 +118,15 @@ public class PatternParse {
     Matcher match = FSpath.matcher(str);
     if(match.find()){
       LOG.debug("Matched FileSinkOperator: New Fianl Path: FS (.*)$pattern in string");
+      return match.group(1);
+    }
+    return null;
+  }
+
+  public static String initOpTime(String str){
+    Matcher match = initOpTime.matcher(str);
+    if(match.find()){
+      LOG.debug("(^.*) INFO [.*] org...: Initializing Self \\d+ \\w+");
       return match.group(1);
     }
     return null;

@@ -32,7 +32,12 @@ function histogram(originData, taskType, timeType){
   var minST = d3.min(data, function(d) {
                   return d.startTime ;
                 });
-  var minX = minST % 1000000
+
+  var maxFT = d3.max(data, function(d) {
+            return d.finishTime ;
+          });
+  var minX = minST % 1000000000
+
   for( var d = data.length ; d-- ;){
     if(taskType == "MAP" && data[d].tasktype == "REDUCE") {
       data.splice(d, 1);
@@ -44,11 +49,10 @@ function histogram(originData, taskType, timeType){
 
   // compute a appropriately initial height
   var initHeight = getHeight(data.length);
-
-  var margin = {top: 50, right: 40, bottom: 30, left: 200},
+ // var globalWid = 750;
+  var margin = {top: 30, right: 20, bottom: 30, left: 200},
       width = 750 - margin.right - margin.left,
       height = initHeight - margin.top - margin.bottom;
-
   var x = d3.scale.linear()
          .rangeRound([0, width]);
   var y = d3.scale.ordinal()
@@ -72,9 +76,9 @@ function histogram(originData, taskType, timeType){
    var startTimePre = 0, finishTimePre = 0;
    y.domain(data.map(function(d) { return d.taskid; }));
 
-   x.domain([minX / 1000
+   x.domain([0
     ,d3.max(data, function(d) {
-      return (d.finishTime % 1000000) / 1000 ;
+      return (d.finishTime % 1000000000 - minX) / 1000 +100;
     })]);
 
   svg.append("g")
@@ -85,7 +89,7 @@ function histogram(originData, taskType, timeType){
     .attr("dy", ".91em")
     .style("font" ,"12px sans-serif")
     .style("text-anchor", "begin")
-    .text("Time [" + parseInt(minST/1000) + "- ]");
+    .text("Time(s)");
 
   svg.append("g")
     .attr("class", "x axis")
@@ -105,10 +109,10 @@ function histogram(originData, taskType, timeType){
     .append("rect")
     .attr("class", "bar")
     .attr("x", function(d) {
-      return ((d.startTime % 1000000) - minX) + 2 ;
+      return (width / ((maxFT % 1000000000 - minX)/1000))*(((d.startTime % 1000000000) - minX)/1000) + 5;
     })
     .attr("width",function(d) {
-      var wd = (d.finishTime % 1000000) - (d.startTime % 1000000) ;
+      var wd = (d.finishTime % 1000000000) - (d.startTime % 1000000000) ;
       return wd / 1000;
     })
     .attr("y", function(d) { return y(d.taskid); })
@@ -149,15 +153,20 @@ function histogram(originData, taskType, timeType){
     // Copy-on-write since tweens are evaluated after a delay.
     var x0 = y.domain(data.sort(this.checked
       ? function(a, b) {
-        return ((a.finishTime % 1000000) - (a.startTime % 1000000)) -
-          ((b.finishTime % 1000000) - (b.startTime % 1000000));
+        return ((a.finishTime % 1000000000) - (a.startTime % 1000000000)) -
+          ((b.finishTime % 1000000000) - (b.startTime % 1000000000));
       }
-      : function(a, b) { return d3.ascending(a.taskid, b.taskid); })
+      : function(a, b) {
+        return d3.ascending((a.startTime % 1000000000) - minX,
+         (b.startTime % 1000000000) - minX);
+      })
       .map(function(d) { return d.taskid; }))
       .copy();
 
     svg.selectAll(".bar")
-      .sort(function(a, b) { return x0(a.taskid) - x0(b.taskid); });
+      .sort(function(a, b) {
+        return x0(a.taskid) - x0(b.taskid);
+      });
 
     var transition = svg.transition().duration(750),
         delay = function(d, i) { return i * 50; };

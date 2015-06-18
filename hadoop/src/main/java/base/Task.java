@@ -19,6 +19,8 @@ import java.util.Map;
  */
 public abstract class Task  implements Serializable {
   private static Log LOG = LogFactory.getLog(Task.class);
+  protected long startProcTime;
+  protected long doneProcTime;
   protected String taskID;
   protected Path taskLogPath;
   protected JhistFileParser.TaskInfo taskInfo;
@@ -27,12 +29,15 @@ public abstract class Task  implements Serializable {
 
 
   public Task(Path taskLogPath, JhistFileParser.TaskInfo taskInfo,
-              LinkedHashMap<String, Node> operators) {
+              LinkedHashMap<String, Node> operators, long startProcTime,
+              long doneProcTime) {
     this.taskID = taskInfo.getTaskId().toString();
     this.taskLogPath = taskLogPath;
     this.taskInfo = taskInfo;
     this.operators = new LinkedHashMap<String, Node>();
     this.operators.putAll(operators);
+    this.startProcTime = startProcTime;
+    this.doneProcTime = doneProcTime;
   }
 
   public String getTaskID() {
@@ -76,8 +81,8 @@ public abstract class Task  implements Serializable {
     }
     jobJson.put("operatorTree", ops);
 
-    jobJson.put("startTime", taskInfo.getStartTime());
-    jobJson.put("finishTime", taskInfo.getFinishTime());
+    jobJson.put("startTime", startProcTime);
+    jobJson.put("finishTime", doneProcTime);
     jobJson.put("splitLocation", taskInfo.getSplitLocations());
     jobJson.put("error", taskInfo.getError());
     jobJson.put("status", taskInfo.getTaskStatus());

@@ -171,10 +171,10 @@ public class CliDriver {
                 Arrays.asList(json.get("splitFiles").toString().split(",")));
       }
       if ( json.containsKey("inputMapTasks")) {
+        System.out.println(taskid + ">>>>>>>>>>>>>> " +  Arrays.asList(json.get("inputMapTasks").toString().split(",")));
         attributes.put("inputMapTasks",
                 Arrays.asList(json.get("inputMapTasks").toString().split(",")));
       }
-      System.out.println(json.get("operatorTree") );
       StringMap treeMapOps = ((StringMap)json.get("operatorTree"));
       LinkedHashMap ops = new LinkedHashMap();
       for(Object op : treeMapOps.keySet()){
@@ -209,7 +209,12 @@ public class CliDriver {
         content.put("startTime",BigDecimal.valueOf(json.get("startTime")).longValue());
         content.put("finishTime",BigDecimal.valueOf(json.get("finishTime")).longValue());
         list.add(content);
-        System.out.println("startTime :" + BigDecimal.valueOf(json.get("startTime")).longValue());
+        if(task.getTaskType().equals("REDUCE")) {
+          System.out.println("------------------------");
+          System.out.println(task.getTaskid());
+          System.out.println("startTime :" + BigDecimal.valueOf(json.get("startTime")).longValue());
+          System.out.println("finishTime :" + BigDecimal.valueOf(json.get("finishTime")).longValue());
+        }
       }
       String data = JSONValue.toJSONString(list);
       attributes.put("data", data);
