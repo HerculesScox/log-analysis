@@ -67,11 +67,11 @@ public class Graphviz {
       content.put("taskid", task.getTaskid());
       content.put("tasktype",task.getTaskType());
       if(task.getTaskType().equals("MAP")){
-        content.put("x", 0);
+        content.put("x", 70);
         content.put("y", my);
         my = my + 15;
       }else{
-        content.put("x", 500);
+        content.put("x", 660);
         content.put("y", ry);
         ry = ry + 15;
       }

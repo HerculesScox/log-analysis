@@ -50,8 +50,8 @@ function histogram(originData, taskType, timeType){
   // compute a appropriately initial height
   var initHeight = getHeight(data.length);
  // var globalWid = 750;
-  var margin = {top: 30, right: 20, bottom: 30, left: 200},
-      width = 750 - margin.right - margin.left,
+  var margin = {top: 30, right: 20, bottom: 30, left: 220},
+      width = 800 - margin.right - margin.left,
       height = initHeight - margin.top - margin.bottom;
   var x = d3.scale.linear()
          .rangeRound([0, width]);
@@ -188,8 +188,8 @@ function histogram(originData, taskType, timeType){
 function taskIOMap(data, links){
   console.log(data);
   console.log(links);
-  var margin = {top: 10, right: 20, bottom: 30, left: 150},
-    width = 760 - margin.left - margin.right,
+  var margin = {top: 10, right: 20, bottom: 30, left: 30},
+    width = 800 - margin.left - margin.right,
     height = 1200 - margin.top - margin.bottom;
 
   var svg = d3.select("#task_IO").append("svg")
@@ -220,7 +220,7 @@ function taskIOMap(data, links){
     .on("mouseover", hyper_mouse)
     .on("mouseout", hyper_out)
     .on("click", hyper)
-    .text(function(d) { console.log(d.taskid.substr(24)); return d.taskid.substr(24); });
+    .text(function(d) { return d.taskid.substr(24); });
 
   svg.append("defs").selectAll("marker")
     .data(["suit"])
@@ -234,7 +234,6 @@ function taskIOMap(data, links){
     .attr("orient", "auto")
     .append("path")
     .attr("d", "M0,-5L10,0L0,5");
-
 
   svg.selectAll(".line")
     .data(links)

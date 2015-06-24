@@ -38,7 +38,7 @@
                 <tr>
                   <td><strong>Task IO Chart</strong></td>
                   <td>
-                    <small style="font-size:13px;padding-left:30px"><a href="/mapoutput/${jobid}">Entry<a></small>
+                    <em style="font-size:13px;padding-left:30px"><a href="/mapoutput/${jobid}">Entry<a></em>
                   </td>
                 </tr>
                 <tr>

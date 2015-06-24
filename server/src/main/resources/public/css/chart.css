@@ -2,11 +2,11 @@
     font: 10px sans-serif;
   }
 
-  .axis path,
-  .axis line {
+  .axis path, .axis line {
     fill: none;
     stroke: #000;
     shape-rendering: crispEdges;
+    stroke-width:1.5px;
   }
 
   .bar {
@@ -17,6 +17,6 @@
 
   .chart_label label{
     top: 10px;
-    right: 10px;
-    float: right;
+    position:relative;
+    left: 700px;
   }
