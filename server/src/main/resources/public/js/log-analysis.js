@@ -74,7 +74,12 @@ function histogram(originData, taskType, timeType){
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
    var startTimePre = 0, finishTimePre = 0;
-   y.domain(data.map(function(d) { return d.taskid; }));
+   y.domain(data.sort(
+           function(a, b) {
+                   return d3.ascending((a.startTime % 1000000000) - minX,
+                    (b.startTime % 1000000000) - minX);
+           })
+           .map(function(d) { return d.taskid; }));
 
    x.domain([0
     ,d3.max(data, function(d) {
@@ -96,12 +101,10 @@ function histogram(originData, taskType, timeType){
     .attr("transform", "translate(0, 0)")
     .call(xAxis);
 
-
   svg.append("g")
     .attr("class", "y axis")
     .attr("transform", "translate(0, 0)")
     .call(yAxis);
-
 
   svg.selectAll(".bar")
     .data(data)
@@ -182,5 +185,85 @@ function histogram(originData, taskType, timeType){
   }
 }
 
+function taskIOMap(data, links){
+  console.log(data);
+  console.log(links);
+  var margin = {top: 10, right: 20, bottom: 30, left: 150},
+    width = 760 - margin.left - margin.right,
+    height = 1200 - margin.top - margin.bottom;
+
+  var svg = d3.select("#task_IO").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  svg.selectAll("circle.nodes")
+    .data(data)
+    .enter()
+    .append("svg:circle")
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .attr("r", "3px")
+    .attr("fill", "rgb(139,116,132)");
+
+  svg.append("g").selectAll("text")
+    .data(data)
+    .enter().append("text")
+    .attr("x",  function(d) {
+      if(d.tasktype == "MAP")
+        return d.x-90;
+      else
+        return d.x+20
+     })
+    .attr("y", function(d) { return d.y+4; })
+    .on("mouseover", hyper_mouse)
+    .on("mouseout", hyper_out)
+    .on("click", hyper)
+    .text(function(d) { console.log(d.taskid.substr(24)); return d.taskid.substr(24); });
+
+  svg.append("defs").selectAll("marker")
+    .data(["suit"])
+    .enter().append("marker")
+    .attr("id", function(d) { return d; })
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 15)
+    .attr("refY", -1.5)
+    .attr("markerWidth", 5)
+    .attr("markerHeight", 5)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5");
+
+
+  svg.selectAll(".line")
+    .data(links)
+    .enter()
+    .append("line")
+    .attr("x1", function(d) { return d.source.x })
+    .attr("y1", function(d) { return d.source.y })
+    .attr("x2", function(d) { return d.target.x })
+    .attr("y2", function(d) { return d.target.y })
+    .style("stroke", "rgb(23,232,223)")
+    .style("stroke-width",1)
+    .attr("class", function(d) { return "link 2"; })
+    .attr("marker-end","url(#suit)");
+
+
+  function hyper(d){
+      location.href="/task/" + d.taskid;
+    }
+
+  function hyper_mouse(d){
+    d3.select(this).attr("fill", "rgb(127,29,226)");
+    $("[id^=task_]").hover(function() {
+       $(this).css('cursor','pointer');
+    });
+  }
+
+ function hyper_out(d){
+    d3.select(this).attr("fill", "black");
+ }
+}
 
 

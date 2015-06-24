@@ -4,7 +4,6 @@
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         <h2 class="sub-header">
           ${subTitle}
-          <em style="font-size:20px;"><a href="/jobchart/${jobid}">(chart)<a></em>
         </h2>
 
         <div class="table-responsive">
@@ -29,6 +28,18 @@
                   <td>
                     ${json["submitTime"]?number_to_datetime}
                    </td>
+                </tr>
+                <tr>
+                  <td><strong>Task Time Chart</strong></td>
+                  <td>
+                    <em style="font-size:13px;padding-left:30px"><a href="/jobchart/${jobid}">Entry<a></em>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Task IO Chart</strong></td>
+                  <td>
+                    <small style="font-size:13px;padding-left:30px"><a href="/mapoutput/${jobid}">Entry<a></small>
+                  </td>
                 </tr>
                 <tr>
                   <td><strong><a href="/job/${jobid}/ops/MAP">Map Ops</a></strong></td>

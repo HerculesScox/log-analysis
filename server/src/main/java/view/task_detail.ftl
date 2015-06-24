@@ -25,14 +25,18 @@
                   <td><strong>Status</strong></td>
                   <td>${status}</td>
                 </tr>
-                <tr>
-                  <td><strong>Split Location</strong></td>
-                  <td>${splitLocation}</td>
-                </tr>
-                <tr>
-                  <td><strong>Error</strong></td>
-                  <td>${error}</td>
-                </tr>
+                <#if splitLocation?length != 0>
+                  <tr>
+                    <td><strong>Split Location</strong></td>
+                    <td>${splitLocation}</td>
+                  </tr>
+                </#if>
+                <#if error?length != 0>
+                  <tr>
+                    <td><strong>Error</strong></td>
+                    <td>${error}</td>
+                  </tr>
+                </#if>
                 <tr>
                   <td ><strong>Attempt Task</strong></td>
                   <td>
@@ -77,6 +81,18 @@
                         </#list>
                       <ol>
                     </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Output To</strong></td>
+                    <td>
+                       <ul class="hide_list" style="list-style:disc;padding-left:20px;">
+                         <#list outputTo as tid>
+                           <li><a href="/task/${tid}">${tid}</a></li>
+                         </#list>
+                          <div class="show_more"> more...</div>
+                          <div class="show_less"> less...</div>
+                      </ul
+                     </td>
                   </tr>
                 <#else>
                    <tr>

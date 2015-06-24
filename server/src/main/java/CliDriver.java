@@ -3,8 +3,6 @@
  */
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.ParsePosition;
 import java.util.*;
 
 import bean.Job;
@@ -171,7 +169,6 @@ public class CliDriver {
                 Arrays.asList(json.get("splitFiles").toString().split(",")));
       }
       if ( json.containsKey("inputMapTasks")) {
-        System.out.println(taskid + ">>>>>>>>>>>>>> " +  Arrays.asList(json.get("inputMapTasks").toString().split(",")));
         attributes.put("inputMapTasks",
                 Arrays.asList(json.get("inputMapTasks").toString().split(",")));
       }
@@ -188,6 +185,30 @@ public class CliDriver {
       attributes.put("finishTime", json.get("finishTime"));
       attributes.put("splitLocation", json.get("splitLocation"));
       attributes.put("Counter", json.get("Counter"));
+
+      List redList = new ArrayList();
+      //add map output to which reduce task
+      if(task.getTaskType().equals("MAP")) {
+        List<Task> tasks = dao.getByJobid(task.getJobid());
+        for (Task tk : tasks) {
+          if (tk.getTaskType().equals("REDUCE")) {
+            JsonElement jelementTk = new JsonParser().parse(tk.getDetailInfo());
+            LinkedHashMap<String, Object> jsonTk =
+              gson.fromJson(jelementTk, new TypeToken<LinkedHashMap>() {}
+                  .getType());
+            String matchStr = jsonTk.get("inputMapTasks")
+                                    .toString()
+                                    .replace("[", "")
+                                    .replace("]", "")
+                                    .replace(" ","");
+            List<String> inputOfRedTask =  Arrays.asList(matchStr.split(","));
+            if (inputOfRedTask.contains(task.getTaskid())) {
+              redList.add(tk.getTaskid());
+            }
+          }
+        }
+      }
+      attributes.put("outputTo", redList);
       return new ModelAndView(attributes, "task_detail.ftl");
     }, new FreeMarkerEngine());
 
@@ -198,55 +219,35 @@ public class CliDriver {
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("subTitle","Task Chart");
       List list = new ArrayList();
-      DecimalFormat df = new DecimalFormat();
       for(Task task : tasks) {
         Map<String, Object> content = new HashMap<>();
         JsonElement jelement = new JsonParser().parse(task.getDetailInfo());
         Gson gson = new Gson();
-        LinkedHashMap<String, Double> json = gson.fromJson(jelement, new TypeToken<LinkedHashMap>(){}.getType());
+        LinkedHashMap<String, Double> json = gson.fromJson(jelement, new TypeToken<LinkedHashMap>(){}
+                                                 .getType());
         content.put("taskid", task.getTaskid());
         content.put("tasktype",task.getTaskType());
         content.put("startTime",BigDecimal.valueOf(json.get("startTime")).longValue());
         content.put("finishTime",BigDecimal.valueOf(json.get("finishTime")).longValue());
         list.add(content);
-        if(task.getTaskType().equals("REDUCE")) {
-          System.out.println("------------------------");
-          System.out.println(task.getTaskid());
-          System.out.println("startTime :" + BigDecimal.valueOf(json.get("startTime")).longValue());
-          System.out.println("finishTime :" + BigDecimal.valueOf(json.get("finishTime")).longValue());
-        }
       }
       String data = JSONValue.toJSONString(list);
       attributes.put("data", data);
       return new ModelAndView(attributes, "job_chart.ftl");
     }, new FreeMarkerEngine());
 
-    post("/jobchart/*/tasktype/*", (request, response) -> {
-      String jobid = request.splat()[0];
-      String type = request.splat()[1];
+    get("/mapoutput/:jobid", (request, response) -> {
+      String jobid = request.params(":jobid");
       TaskDAO dao = new TaskDAO();
       List<Task> tasks = dao.getByJobid(jobid);
       Map<String, Object> attributes = new HashMap<>();
-      attributes.put("subTitle", "Task Chart");
-      List list = new ArrayList();
-      for (Task task : tasks) {
-        Map<String, Object> content = new HashMap<>();
-        if (task.getTaskType().equals(type)) {
-          JsonElement jelement = new JsonParser().parse(task.getDetailInfo());
-          Gson gson = new Gson();
-          Map json = gson.fromJson(jelement, new TypeToken<Map>() {
-          }.getType());
-          content.put("taskid", task.getTaskid());
-          content.put("tasktype", task.getTaskType());
-          content.put("startTime", json.get("startTime"));
-          content.put("finishTime", json.get("finishTime"));
-          list.add(content);
-        }
-      }
-      String data = JSONValue.toJSONString(list);
-      System.out.println("json :" + data);
-      attributes.put("data", list);
-      return new ModelAndView(attributes, "job_chart.ftl");
+      attributes.put("subTitle", "Map Task Output");
+      List<LinkedHashMap> outputMap = new ArrayList<>();
+      List tasksJson = Graphviz.JsonTasks(tasks,outputMap);
+      attributes.put("taskid", tasks.get(0).getTaskid().substring(0,24));
+      attributes.put("data", JSONValue.toJSONString(tasksJson));
+      attributes.put("links", JSONValue.toJSONString(outputMap));
+      return new ModelAndView(attributes, "task_io_chart.ftl");
     }, new FreeMarkerEngine());
   }
 

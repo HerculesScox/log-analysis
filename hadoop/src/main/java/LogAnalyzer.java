@@ -50,13 +50,13 @@ public class LogAnalyzer extends Observable{
           HashSet<String> taskGroup =taskParser.parse(job, p);
           for(String id : taskGroup){
             System.out.println(id);
-            Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
+        //    Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
             System.out.println("------------------------------------ ");
           }
         }
-        Recorder.jobInfoRecord(job);
+   //     Recorder.jobInfoRecord(job);
       }
-      Recorder.queryInfoRecord(q);
+   //   Recorder.queryInfoRecord(q);
     }
     DBHander.close();
   }

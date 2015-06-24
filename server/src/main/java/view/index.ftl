@@ -13,7 +13,7 @@
                 <thead>
                 <tr>
                     <th style="text-align:center;" width="5%">NO.</th>
-                   <th style="text-align:center;" width="7%">USERNAME</th>
+                    <th style="text-align:center;" width="7%">USERNAME</th>
                     <th style="text-align:center;" width="55%">QUERY</th>
                     <th style="text-align:center;" width="23%">JOB DEPENDENCY</th>
                     <th style="text-align:center;" >JOB AMOUNT</th>
@@ -63,13 +63,6 @@
                         </td>
                     </tr>
                 </#list>
-                <tr>
-                    <td>1,013</td>
-                    <td>torquent</td>
-                    <td>per</td>
-                    <td>conubia</td>
-                    <td>nostra</td>
-                </tr>
                 </tbody>
             </table>
         </div>

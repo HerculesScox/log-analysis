@@ -15,8 +15,11 @@ public class PatternParse {
   private static Pattern jobPattern = Pattern.compile("job_\\d+_\\d+");
   private static Pattern jobID = Pattern.compile("_\\d+_\\d+");
 
-  private static Pattern taskID = Pattern.compile("(^.*) INFO \\[.*\\] org\\.apache\\.hadoop" +
-          "\\.mapred\\.Task: Task:attempt_(\\d+_\\d+_[m|r]_\\d+)_\\d+ is done\\.");
+  private static Pattern taskID =
+          Pattern.compile(
+                     "(^.*) " +
+                     "INFO \\[.*\\] org\\.apache\\.hadoop\\.mapred\\.Task: " +
+                     "Task:attempt_(\\d+_\\d+_[m|r]_\\d+)_\\d+ is done\\.");
 
   /** reduce task log information */
   private static Pattern reduceTaskInput = Pattern.compile("org\\.apache\\.hadoop" +
@@ -42,10 +45,11 @@ public class PatternParse {
                   "|" +
                   "(\\s*<\\\\w+>\\s*$)"
           );
-  private static Pattern initOpTime = Pattern.compile(
-          "(^.*) " +
-          "INFO \\[.*\\] org\\.apache\\.hadoop\\.hive\\.ql\\.exec\\.\\w+: " +
-          "Initializing Self \\d+ \\w+");
+  private static Pattern initOpTime =
+          Pattern.compile(
+                  "(.*) " +
+                  "INFO \\[.*\\] org\\.apache\\.hadoop\\.hive\\.ql\\.exec\\.\\w+: " +
+                  "Initializing Self ");
   private static Pattern opProcFinish = Pattern.compile("org\\.apache\\.hadoop\\." +
           "hive\\.ql\\.exec\\.\\w+: \\d+ finished\\. closing.*$");
   private static Pattern opProcRows = Pattern.compile("org\\.apache\\.hadoop" +
@@ -133,6 +137,7 @@ public class PatternParse {
   }
 
   public static boolean endOperator(String str){
+    System.out.println(str);
     Matcher match = endOperator.matcher(str);
     if(match.find()){
       LOG.debug("Matched </\\w+>\\s*$ pattern in string");

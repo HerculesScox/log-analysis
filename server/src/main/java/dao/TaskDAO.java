@@ -59,10 +59,11 @@ public class TaskDAO {
     try {
       ResultSet res = DBHander.select(sql);
       while (res.next()) {
+        String jobid = res.getString("jobid");
         String logPath = res.getString("logPath");
         String taskType = res.getString("taskType");
         String detailInfo = res.getString("detailInfo");
-        task = new Task( taskid, taskType, logPath, detailInfo) ;
+        task = new Task( taskid, taskType, logPath, detailInfo, jobid) ;
       }
       res.close();
       return task;

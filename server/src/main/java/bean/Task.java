@@ -5,10 +5,10 @@ package bean;
  */
 public class Task {
   private String taskid;
+  private String jobid;
   private String taskType;
   private String logPath;
   private String detailInfo;
-  private String remark;
 
   public Task(String taskid, String taskType, String logPath, String detailInfo) {
     this.taskid = taskid;
@@ -18,12 +18,12 @@ public class Task {
   }
 
   public Task(String taskid, String taskType, String logPath,
-        String detailInfo, String remark) {
+        String detailInfo, String jobid) {
     this.taskid = taskid;
     this.taskType = taskType;
     this.logPath = logPath;
     this.detailInfo = detailInfo;
-    this.remark = remark;
+    this.jobid = jobid;
   }
 
   public Task() {
@@ -61,11 +61,11 @@ public class Task {
     this.detailInfo = detailInfo;
   }
 
-  public String getRemark() {
-    return remark;
+  public String getJobid() {
+    return jobid;
   }
 
-  public void setRemark(String remark) {
-    this.remark = remark;
+  public void setJobid(String remark) {
+    this.jobid = remark;
   }
 }

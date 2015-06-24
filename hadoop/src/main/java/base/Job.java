@@ -131,7 +131,7 @@ public class Job implements Serializable{
     jobJson.put("redInputs", redInputs);
     jobJson.put("reduceOps", reduceOps);
     jobJson.put("mapOps", mapOps);
-
+    System.out.println(jobInfo.getJobid().toString() + " " +redInputs);
     LinkedHashMap counterGroup = new LinkedHashMap();
     LinkedHashMap mapcounter = new LinkedHashMap();
     LinkedHashMap redcounter = new LinkedHashMap();
