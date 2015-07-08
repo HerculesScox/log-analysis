@@ -32,24 +32,27 @@ public class Graphviz {
 
     StringBuilder builder = new StringBuilder();
     builder.append("digraph G {\n");
+    builder.append("node[fontsize=10];\n");
     for(String k : stages.keySet()){
       for(String inerKey : stages.get(k).replace(",","\",\"").split(",")){
         builder.append( k );
         builder.append( " -> ");
         builder.append( inerKey );
         builder.append( ";\n" );
-        if( fixedStages.contains(inerKey)) {
+        String ikey = inerKey.replaceAll("\\(.*\\)","");
+        if( fixedStages.contains(ikey)) {
           builder.append(inerKey);
           builder.append("[style=filled,color=red]");
           builder.append( ";\n" );
-          fixedStages.remove(inerKey);
+          fixedStages.remove(ikey);
         }
       }
-      if( fixedStages.contains(k)) {
+      String rk = k.replaceAll("\\(.*\\)","");
+      if( fixedStages.contains(rk)) {
         builder.append(k);
         builder.append("[style=filled,color=red]");
         builder.append( ";\n" );
-        fixedStages.remove(k);
+        fixedStages.remove(rk);
       }
     }
     builder.append("}\n");

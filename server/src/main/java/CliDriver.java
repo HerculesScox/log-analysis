@@ -11,12 +11,14 @@ import bean.Task;
 import com.google.gson.*;
 import com.google.gson.internal.StringMap;
 import com.google.gson.reflect.TypeToken;
+import dao.AdminDao;
 import dao.JobDAO;
 import dao.QueryDAO;
 import dao.TaskDAO;
 import org.json.simple.JSONValue;
 import spark.ModelAndView;
 import spark.Spark;
+import util.GenRenderData;
 import util.Graphviz;
 
 
@@ -28,32 +30,37 @@ public class CliDriver {
   public static void main(String args[]) {
     Spark.staticFileLocation("/public");
     get("/", (request, response) -> {
-      QueryDAO dao = new QueryDAO();
-      List<Query> list = dao.getAll();
-      List<Map<String, Object>> allInfo = new ArrayList<>();
-      int i = 1;
-      for (Query l : list ){
-        Map<String, Object> query = new HashMap<String, Object>();
-        query.put("number", i++);
-        Map<String, String> stageToJobID = dao.getWorkflowNodeByID(l.getWorkflowID());
-        query.put("workflowID", l.getWorkflowID());
-        query.put("username", l.getUsername());
-        query.put("launchTime", l.getLaunchtime());
-        query.put("queryString" , l.getQueryStirng());
-        query.put("jobDependency", l.getJobDependency());
-        JsonElement jelement = new JsonParser().parse(l.getJobDependency());
-        Gson gson = new Gson();
-        Map<String, String> json = gson.fromJson(jelement, new TypeToken<Map>(){}.getType());
-        query.put("stageToJobID", stageToJobID);
-        query.put("svg", Graphviz.conv(json, stageToJobID.keySet()));
-        query.put("jobAmount", l.getJobAmount());
-        allInfo.add(query);
-      }
       Map<String, Object> attributes = new HashMap<>();
-      attributes.put("subTitle", "Querys List");
+      List<Map<String, Object>> allInfo = GenRenderData.mainPage(1,attributes,"all");
+      attributes.put("subTitle", "Query List");
       attributes.put("allInfo", allInfo);
+      attributes.put("user", "all");
       return new ModelAndView(attributes, "index.ftl");
     }, new FreeMarkerEngine());
+
+    get("/page/:index/user/:user", (request, response) -> {
+      String page = request.params(":index");
+      String user = request.params(":user");
+      Map<String, Object> attributes = new HashMap<>();
+      List<Map<String, Object>> allInfo =
+                GenRenderData.mainPage(Integer.valueOf(page),attributes,user);
+      attributes.put("subTitle", "Query List");
+      attributes.put("allInfo", allInfo);
+      attributes.put("user", user);
+      return new ModelAndView(attributes, "index.ftl");
+    }, new FreeMarkerEngine());
+
+    post("/index_user", (request, response) -> {
+      String user = request.queryParams("user");
+      Map<String, Object> attributes = new HashMap<>();
+      List<Map<String, Object>> allInfo =
+              GenRenderData.mainPage(1, attributes, user);
+      attributes.put("subTitle", "Query List");
+      attributes.put("allInfo", allInfo);
+      attributes.put("user", user);
+      return new ModelAndView(attributes, "index.ftl");
+    }, new FreeMarkerEngine());
+
 
     get("/job/:jobid", (request, response) -> {
       String jobid = request.params(":jobid");
@@ -78,23 +85,9 @@ public class CliDriver {
 
     get("/jobs/:workflowID", (request, response) -> {
       String workflowID = request.params(":workflowID");
-      JobDAO dao = new JobDAO();
-      List<Job> jobs = dao.getByWfID(workflowID);
-      List<Map<String, Object>> allInfo = new ArrayList<>();
+      List<Map<String, Object>> allInfo = GenRenderData.jobsList(workflowID);
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("subTitle", "Jobs List");
-      int i = 1;
-      for(Job job : jobs) {
-        Map<String, Object> content = new HashMap<>();
-        content.put("number", i++);
-        content.put("jobid", job.getJobid());
-        content.put("stage", job.getWorkflowNode());
-        content.put("taskNum", job.getTaskNum());
-        JsonElement jelement = new JsonParser().parse(job.getDetailInfo());
-        Long launchtime = jelement.getAsJsonObject().get("launchTime").getAsLong();
-        content.put("launchtime", launchtime);
-        allInfo.add(content);
-      }
       attributes.put("allInfo", allInfo);
       return new ModelAndView(attributes, "job_all.ftl");
     }, new FreeMarkerEngine());
@@ -248,6 +241,34 @@ public class CliDriver {
       attributes.put("data", JSONValue.toJSONString(tasksJson));
       attributes.put("links", JSONValue.toJSONString(outputMap));
       return new ModelAndView(attributes, "task_io_chart.ftl");
+    }, new FreeMarkerEngine());
+
+
+    get("/login/:info", (request, response) -> {
+      String info = request.params(":info");
+      if(info.equals("sign")) {
+        String username = request.queryParams("username");
+        String password = request.queryParams("password");
+        AdminDao dao = new AdminDao();
+        boolean isSucc = dao.verification(username, password);
+        if (isSucc) {
+          response.redirect("/admin");
+        } else {
+          response.redirect("/login/failed");
+        }
+      }
+      Map<String, Object> attributes = new HashMap<>();
+      attributes.put("info", info);
+      attributes.put("subTitle", "Administration Login");
+      return new ModelAndView(attributes, "login.ftl");
+    }, new FreeMarkerEngine());
+
+    get("/admin", (request, response) -> {
+      Map<String, Object> attributes = new HashMap<>();
+      request.session(true);
+      request.session().attribute("user","admin");
+      attributes.put("subTitle", "Database Manager");
+      return new ModelAndView(attributes, "admin.ftl");
     }, new FreeMarkerEngine());
   }
 

@@ -28,7 +28,7 @@ public class JobDAO {
             " from `log_analysis`.`table_job` " +
             " where jobid='" + jobid + "'";
     try {
-      ResultSet res = DBHander.select(sql);
+      ResultSet res = DBHander.select(sql,-1,-1);
       while (res.next()) {
         String logPath = res.getString("logPath");
         String workflowID = res.getString("workflowID");
@@ -59,7 +59,7 @@ public class JobDAO {
                     " where workflowID='" + workflowID + "'" +
                     " group by j.jobid";
     try {
-      ResultSet res = DBHander.select(sql);
+      ResultSet res = DBHander.select(sql,-1,-1);
       while (res.next()) {
         String logPath = res.getString("logPath");
         String jobid = res.getString("jobid");

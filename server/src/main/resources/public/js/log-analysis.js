@@ -81,7 +81,7 @@ function histogram(originData, taskType, timeType){
            })
            .map(function(d) { return d.taskid; }));
 
-   x.domain([0
+  x.domain([0
     ,d3.max(data, function(d) {
       return (d.finishTime % 1000000000 - minX) / 1000 +100;
     })]);
@@ -186,8 +186,6 @@ function histogram(originData, taskType, timeType){
 }
 
 function taskIOMap(data, links){
-  console.log(data);
-  console.log(links);
   var margin = {top: 10, right: 20, bottom: 30, left: 30},
     width = 800 - margin.left - margin.right,
     height = 1200 - margin.top - margin.bottom;

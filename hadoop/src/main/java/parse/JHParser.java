@@ -42,6 +42,11 @@ public class JHParser {
     HashSet<Path> jpaths = logInput.genJFPath();
     HashMap<String,Path> xmlFiles = parseXMLFilePath();
 
+    if(jpaths.isEmpty()){
+      System.out.println("Not found log files!");
+      return;
+    }
+
     for (Path path : jpaths){
       FileSystem fs = path.getFileSystem(conf);
       JhistFileParser jp = new JhistFileParser( fs, path);

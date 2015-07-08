@@ -137,7 +137,6 @@ public class PatternParse {
   }
 
   public static boolean endOperator(String str){
-    System.out.println(str);
     Matcher match = endOperator.matcher(str);
     if(match.find()){
       LOG.debug("Matched </\\w+>\\s*$ pattern in string");

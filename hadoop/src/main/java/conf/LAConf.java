@@ -31,6 +31,8 @@ public class LAConf extends Configuration {
 
   private static final String username = props.getProperty("username") ;
   private static final String dsf = props.getProperty("fs.defaultFS") ;
+  private static final String backupDir = props.getProperty("backupDir");
+
   private static Tuple<String,String> NMLOG = new Tuple<String,String>
           ("yarn.nodemanager.remote-app-log-dir",
                   props.getProperty("yarn.node.manager.remote-app-log-dir"));
@@ -40,7 +42,6 @@ public class LAConf extends Configuration {
 
   /** Preprocessing */
   static {
-
     for (Map.Entry<String, String> env : System.getenv().entrySet()) {
       if (env.getKey().equals("HADOOP_CONF_DIR") || env.getKey().equals("HADOOP_CONF")) {
         hadoopConfPath = env.getValue();
@@ -198,6 +199,9 @@ public class LAConf extends Configuration {
     return  props.getProperty("dbPassword").trim();
   }
 
+  public static String getBackupDir() {
+    return backupDir;
+  }
 }
 
 

@@ -77,6 +77,7 @@ public class Job implements Serializable{
     jobJson.put("workflowNodeName", jobInfo.getWorkflowNodeName());
     jobJson.put("submitTime", jobInfo.getSubmitTime());
     jobJson.put("launchTime", jobInfo.getLaunchTime());
+    jobJson.put("finishTime", jobInfo.getFinishTime());
 
     List<String> mapInputs = new ArrayList<String>();
     List<String> mapInputFormat = new ArrayList<String>();

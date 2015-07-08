@@ -9,6 +9,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.TaskID;
 import parse.JHParser;
 import parse.TaskLogParser;
+import util.HDFSCommand;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -47,17 +48,18 @@ public class LogAnalyzer extends Observable{
         String jobID = job.getJobInfo().getJobid().toString();
         for(Path p : jobIDToTaskPath.get(jobID)){
           job.chopKilledTask();
-          HashSet<String> taskGroup =taskParser.parse(job, p);
+          HashSet<String> taskGroup = taskParser.parse(job, p);
           for(String id : taskGroup){
             System.out.println(id);
-        //    Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
+            Recorder.taskInfoRecord(job.getTasks().get(id),jobID );
             System.out.println("------------------------------------ ");
           }
         }
-   //     Recorder.jobInfoRecord(job);
+        Recorder.jobInfoRecord(job);
       }
-   //   Recorder.queryInfoRecord(q);
+      Recorder.queryInfoRecord(q);
     }
+    HDFSCommand.clearAndBackup(conf);
     DBHander.close();
   }
 

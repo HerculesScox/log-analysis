@@ -21,16 +21,25 @@ public class QueryDAO {
   * Get all query information
   * @return
   */
-  public List<Query> getAll() {
+  public List<Query> getAll(int page, int maxSize, String user) {
     List<Query> qlist = new ArrayList<Query>();
     String sql =
-                " select queryString, j.workflowID, jobDependency,launchtime," +
-                " username, count(j.workflowID) as jobCount" +
-                "  from `table_query` q join `table_job` j " +
-                " on q.workflowID = j.workflowID" +
-                " group by j.workflowID";
+            " select queryString, j.workflowID, jobDependency,launchtime," +
+                    " username, count(j.workflowID) as jobCount" +
+                    " from `table_query` q join `table_job` j " +
+                    " on q.workflowID = j.workflowID " ;
+    if(!user.equals("all") && user != null){
+        sql += "where q.username='" + user + "'";
+    }
+    sql += " group by j.workflowID order by launchtime desc;";
     try {
-      ResultSet res = DBHander.select(sql);
+      int startRow = (page - 1) * maxSize;
+      int endRow = startRow + maxSize + 1;
+      ResultSet res = DBHander.select(sql,page, endRow);
+      if( startRow != 0)
+        res.absolute(startRow);
+      else
+        res.beforeFirst();
       while (res.next()) {
         String queryString = res.getString("queryString");
         String workflowID = res.getString("workflowID");
@@ -50,6 +59,27 @@ public class QueryDAO {
     return qlist;
   }
 
+  /**
+   * Get query number
+   * @return
+   */
+  public int getQueryNums( String user){
+    int nums = -1;
+    String sql = "select count(*) as nums from `log_analysis`.`table_query` ";
+    if(!user.equals("all") && user != null){
+      sql += "where username='" + user + "'";
+    }
+    try {
+      ResultSet res = DBHander.select(sql,-1,-1);
+      res.next();
+      nums = res.getInt("nums");
+      res.close();
+    }catch (SQLException e){
+      LOG.debug(e.getMessage());
+      e.printStackTrace();
+    }
+    return nums;
+  }
 
   /**
    * Get all job information of the query by workflowID
@@ -61,14 +91,13 @@ public class QueryDAO {
             " `jobDependency` from `log_analysis`.`table_query` q join " +
             " `log_analysis`.`table_job` j on j.workflowID = q.workflowID";
     try {
-        ResultSet res = DBHander.select(sql);
+        ResultSet res = DBHander.select(sql,-1,-1);
         while(res.next()){
           String jobid = res.getString("jobid");
           String workflowNode = res.getString("workflowNode");
           String detailInfo = res.getString("detailInfo");
           String jobDependency = res.getString("jobDependency");
           String queryString = res.getString("queryString");
-
         }
         res.close();
     }catch (SQLException e){
@@ -85,7 +114,7 @@ public class QueryDAO {
             "FROM `table_job` " +
             "WHERE workflowID='" + workflowID+"'";
     try {
-      ResultSet res = DBHander.select(sql);
+      ResultSet res = DBHander.select(sql,-1,-1);
       while(res.next()){
         String jobid = res.getString("jobid");
         String workflowNode = res.getString("workflowNode");

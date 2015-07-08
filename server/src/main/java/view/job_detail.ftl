@@ -27,7 +27,7 @@
                   <td><strong>Submit Time</strong></td>
                   <td>
                     ${json["submitTime"]?number_to_datetime}
-                   </td>
+                  </td>
                 </tr>
                 <tr>
                   <td><strong>Task Time Chart</strong></td>
@@ -109,7 +109,7 @@
                           <#list mcounter?keys as m>
                             <li>${m}: ${mcounter[m]}</li>
                           </#list>
-                         </ul>
+                        </ul>
                       </#list>
                    </td>
                 </tr>

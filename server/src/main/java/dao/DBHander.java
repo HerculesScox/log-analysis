@@ -40,9 +40,19 @@ public class DBHander {
     return con;
   }
 
-  public static ResultSet select(String sql){
+  /**
+   *
+   * @param sql
+   * @param page when page is -1 , max rows is disabled
+   * @param maxSize
+   * @return
+   */
+  public static ResultSet select(String sql, int page, int maxSize){
     try{
-      Statement statement = con.createStatement();
+      Statement statement = con.prepareStatement(sql);
+      if(page != -1){
+        statement.setMaxRows(maxSize);
+      }
       return statement.executeQuery(sql);
     }catch ( SQLException e ){
       System.out.println(e.getMessage());

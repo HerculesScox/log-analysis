@@ -8,6 +8,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * Created by zhangyun on 4/21/15.
@@ -29,7 +30,7 @@ public class Query  implements Serializable {
     this.queryString = queryString;
     this.workflowID = workflowID;
     this.launchTime = 0L;
-    parse( workflowAdjacencies );
+    this.workflowAdjacencies = workflowAdjacencies;
   }
 
   public void addJob( Job job){
@@ -46,16 +47,38 @@ public class Query  implements Serializable {
     return jobs;
   }
 
-  private void parse(String workflowAdjacencies) throws IOException{
+  public String parseStages() throws IOException{
     JSONObject jobJson = new JSONObject();
     String[] groups = workflowAdjacencies.split("\\s+");
     for(String g : groups){
       String[] elements = g.split("=");
-      jobJson.put(elements[0],elements[1]);
+      jobJson.put(stageToJob(elements[0]),  stageToJob(elements[1]));
     }
     StringWriter out = new StringWriter();
     jobJson.writeJSONString(out);
-    this.workflowAdjacencies = jobJson.toJSONString();
+    return jobJson.toJSONString();
+  }
+
+  private String stageToJob(String stage){
+    float runningTime = -1;
+    String trimStr = stage.substring(1, stage.length()-1);
+    for(Job job : jobs){
+      if(job.getJobInfo().getWorkflowNodeName().equals(trimStr)){
+        System.out.println(job.getJobInfo().getWorkflowNodeName());
+        runningTime = (job.getJobInfo().getFinishTime() - job.getJobInfo().getLaunchTime()) / 1000;
+        break;
+      }
+    }
+
+    StringBuilder builder = new StringBuilder();
+    builder.append("\"");
+    builder.append(trimStr);
+    builder.append("(");
+    builder.append(String.valueOf(runningTime));
+    builder.append("s)");
+    builder.append("\"");
+    System.out.println(builder.toString());
+    return builder.toString();
   }
 
   public String getWorkflowAdjacencies() {

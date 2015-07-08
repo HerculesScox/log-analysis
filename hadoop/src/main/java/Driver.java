@@ -5,6 +5,7 @@ import parse.LogInput;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Arrays;
 
 /**
  * Created by zhangyun on 4/24/15.

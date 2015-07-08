@@ -27,7 +27,7 @@ public class TaskDAO {
                     " from `log_analysis`.`table_task` " +
                     " where jobid='" + jobid + "'";
     try {
-      ResultSet res = DBHander.select(sql);
+      ResultSet res = DBHander.select(sql,-1,-1);
       while (res.next()) {
         String taskid = res.getString("taskid");
         String logPath = res.getString("logPath");
@@ -57,7 +57,7 @@ public class TaskDAO {
                     " from `log_analysis`.`table_task` " +
                     " where taskid='" + taskid + "'";
     try {
-      ResultSet res = DBHander.select(sql);
+      ResultSet res = DBHander.select(sql,-1,-1);
       while (res.next()) {
         String jobid = res.getString("jobid");
         String logPath = res.getString("logPath");

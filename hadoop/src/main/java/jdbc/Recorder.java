@@ -73,14 +73,14 @@ public class Recorder {
    * @param query
    * @return
    */
-  public static boolean queryInfoRecord( Query query ){
+  public static boolean queryInfoRecord( Query query ) throws IOException{
     LinkedList<String> params = new LinkedList<String>();
     String sql = "INSERT INTO `log_analysis`.`table_query` " +
             "(`queryString`, `workflowID`, `jobDependency`, `username`, `launchtime`) " +
             "VALUES ( ?, ?, ?, ?,?)";
     params.add(StringEscapeUtils.escapeSql(query.getQueryString()));
     params.add(query.getWorkflowID());
-    params.add(query.getWorkflowAdjacencies());
+    params.add(query.parseStages());
     params.add(query.getJobs().get(0).getJobInfo().getUsername());
     params.add(String.valueOf(query.getLaunchTime()));
     int res = DBHander.execQuery(sql, params);
