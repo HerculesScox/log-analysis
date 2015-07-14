@@ -27,7 +27,7 @@ public class Graphviz {
 
     HashSet<String> fixedStages = new HashSet<>();
     for (String s: markedStages){
-     fixedStages.add("\""+ s +"\"");
+     fixedStages.add("\"" + s + "\"");
     }
 
     StringBuilder builder = new StringBuilder();

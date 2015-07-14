@@ -77,7 +77,9 @@
                 </#list>
                 </tbody>
             </table>
-             <div style="text-align:center">
+            <#assign pages = (count / maxSize)?floor>
+            <#if pages != 0>
+              <div style="text-align:center">
                 <ul class="pagination pagination-small" style="padding-left:0px;margin-left:auto;margin-right:auto;">
                   <li>
                     <#if page == 1>
@@ -88,7 +90,6 @@
                       <span aria-hidden="true">&laquo;</span>
                     </a>
                   </li>
-                  <#assign pages = (count / maxSize)?ceiling>
                   <#list 1..pages as page>
                       <li><a href="/page/${page}/user/${user}">${page}</a></li>
                   </#list>
@@ -103,8 +104,7 @@
                   </li>
                 </ul>
               </div>
-
-
+            </#if>
         </div>
         <div id="myModal" class="reveal-modal">
             <div id="canvas"></div>

@@ -48,11 +48,28 @@ public class Query  implements Serializable {
   }
 
   public String parseStages() throws IOException{
+
     JSONObject jobJson = new JSONObject();
     String[] groups = workflowAdjacencies.split("\\s+");
     for(String g : groups){
       String[] elements = g.split("=");
-      jobJson.put(stageToJob(elements[0]),  stageToJob(elements[1]));
+      String[] stages = elements[1].replace(",","\",\"").split(",");
+
+      if( stages.length == 1){
+        jobJson.put(stageToJob(elements[0]), stageToJob(stages[0]));
+      }else {
+        StringBuilder builder = new StringBuilder();
+        builder.append("\"");
+        int i = 1;
+        for (String stage : stages) {
+          builder.append(stageToJob(stage).replace("\"", ""));
+          if( i++ < stages.length ) {
+            builder.append(",");
+          }
+        }
+        builder.append("\"");
+        jobJson.put(stageToJob(elements[0]),builder.toString());
+      }
     }
     StringWriter out = new StringWriter();
     jobJson.writeJSONString(out);
@@ -64,7 +81,6 @@ public class Query  implements Serializable {
     String trimStr = stage.substring(1, stage.length()-1);
     for(Job job : jobs){
       if(job.getJobInfo().getWorkflowNodeName().equals(trimStr)){
-        System.out.println(job.getJobInfo().getWorkflowNodeName());
         runningTime = (job.getJobInfo().getFinishTime() - job.getJobInfo().getLaunchTime()) / 1000;
         break;
       }
@@ -73,11 +89,12 @@ public class Query  implements Serializable {
     StringBuilder builder = new StringBuilder();
     builder.append("\"");
     builder.append(trimStr);
-    builder.append("(");
-    builder.append(String.valueOf(runningTime));
-    builder.append("s)");
+    if( runningTime != -1) {
+      builder.append("(");
+      builder.append(String.valueOf(runningTime));
+      builder.append("s)");
+    }
     builder.append("\"");
-    System.out.println(builder.toString());
     return builder.toString();
   }
 

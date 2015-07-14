@@ -59,7 +59,7 @@ public class LogAnalyzer extends Observable{
       }
       Recorder.queryInfoRecord(q);
     }
-    HDFSCommand.clearAndBackup(conf);
+  //  HDFSCommand.clearAndBackup(conf);
     DBHander.close();
   }
 
