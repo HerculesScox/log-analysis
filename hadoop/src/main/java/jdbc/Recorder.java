@@ -35,7 +35,6 @@ public class Recorder {
     params.add(task.toJSON());
     int res = DBHander.execQuery(sql, params);
     if ( res > 0 ){
-      System.out.println("> task record successfully");
       LOG.info(" insert task " + task.getTaskID() + " information into" +
               " database successfully");
       return true;

@@ -39,7 +39,7 @@ public class LogAnalyzer extends Observable{
     TaskLogParser taskParser = new TaskLogParser(conf);
     HashMap<String,ArrayList<Path>> jobIDToTaskPath = taskParser.parsePath();
 
-    pad.ParseJsonFile();
+    pad.parseJsonFile();
     Collection<Query> queries = pad.getQueries().values();
     for(Query q : queries){
       System.out.println("================================================");

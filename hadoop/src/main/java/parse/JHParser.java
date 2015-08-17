@@ -38,7 +38,7 @@ public class JHParser {
     return res;
   }
 
-  public void ParseJsonFile( ) throws IOException {
+  public void parseJsonFile( ) throws IOException {
     HashSet<Path> jpaths = logInput.genJFPath();
     HashMap<String,Path> xmlFiles = parseXMLFilePath();
 

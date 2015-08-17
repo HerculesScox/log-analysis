@@ -317,7 +317,8 @@ public class TaskLogParser {
             //FileSInkOperator and JoinOperator may be ignored.
             //continue;
           }
-                  ReduceTask reduceTask=
+
+          ReduceTask reduceTask=
             new ReduceTask(taskInfo, taskLog, operators, attemptTaskID,startProcTime,
               doneProcTime);
           LOG.info("Create A Reduce Task " + taskID);
