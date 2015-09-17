@@ -14,8 +14,11 @@ This tool could establish a relation between query, job and task when anaylzing 
 
 ![map](https://cloud.githubusercontent.com/assets/4024711/8325313/023c71d2-1a8b-11e5-9925-6a2df842a01a.png)
 
-<h4>Requirements：</h4>
+<h4>Requirements environment：</h4>
 - jdk 1.8;
 - hadoop 2.0;
-- hive 0.12+;
-	
+- hive 0.12;
+
+<h4>Dependencies：</h4>
+- job history service
+- yarn log aggeration 
